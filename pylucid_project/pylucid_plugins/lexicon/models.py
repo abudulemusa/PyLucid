@@ -140,7 +140,7 @@ class LexiconEntry(AutoSiteM2M, MarkupBaseModel, UpdateInfoBaseModel):
         """
         super(LexiconEntry, self).save(*args, **kwargs)
 
-        cache.clear() # FIXME: This cleaned the complete cache for every site!
+        cache.save_change_time() # FIXME: This cleaned the complete cache for every site!
 
     def get_name(self):
         """ e.g. for pylucid comment """

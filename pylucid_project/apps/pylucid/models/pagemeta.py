@@ -244,7 +244,7 @@ class PageMeta(BaseModel, UpdateInfoBaseModel, PermissionsBase):
         self.pagetree._url_cache.clear()
 
         # FIXME: We must clean the page cache, but this cleans it for every sites!
-        cache.clear()
+        cache.save_change_time()
 
         return super(PageMeta, self).save(*args, **kwargs)
 

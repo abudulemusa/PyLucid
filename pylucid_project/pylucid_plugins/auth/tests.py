@@ -59,7 +59,7 @@ class LoginTest(basetest.BaseUnittest):
 
     def test_non_ajax_request(self):
         settings.DEBUG = True
-        cache.clear()
+        cache.save_change_time()
         response = self.client.get(LOGIN_URL)
         self.assertResponse(response,
             must_contain=(

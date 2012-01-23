@@ -193,7 +193,7 @@ class BaseLanguageTestCase(BaseUnittest):
         """
         enable DEBUG, PYLUCID.I18N_DEBUG and set message_level_anonymous to DEBUG.
         """
-        cache.clear()
+        cache.save_change_time()
         from pylucid_project.apps.pylucid.preference_forms import SystemPreferencesForm
         self.system_preferences = SystemPreferencesForm()
         self.old_message_level = self.system_preferences["message_level_anonymous"]

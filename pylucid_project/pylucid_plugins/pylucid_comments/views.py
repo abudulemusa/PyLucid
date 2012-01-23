@@ -33,9 +33,10 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django_tools.decorators import render_to
 from django_tools.utils.client_storage import ClientCookieStorage, InvalidCookieData
 
+from pylucid_project.apps.pylucid.decorators import check_request
 from pylucid_project.apps.pylucid.models import LogEntry
 from pylucid_project.apps.pylucid.shortcuts import bad_request
-from pylucid_project.apps.pylucid.decorators import check_request
+from pylucid_project.middlewares.cache import delete_cache_entry
 
 from pylucid_comments.preference_forms import PyLucidCommentsPrefForm
 
@@ -96,10 +97,12 @@ def comment_was_posted_handler(sender, **kwargs):
     request = kwargs["request"]
     comment = kwargs["comment"]
     content_object = comment.content_object
+    absolute_url = content_object.get_absolute_url()
 
     # Gives the user a feedback
     if comment.is_public:
         messages.success(request, _("Your comment has been saved."))
+        delete_cache_entry(request, absolute_url)
     else:
         messages.info(request, _("Your comment waits for moderation."))
 
@@ -119,7 +122,6 @@ def comment_was_posted_handler(sender, **kwargs):
         emailtext = render_to_string("pylucid_comments/admins_notification_email.txt", email_context)
 
         site_name = Site.objects.get_current().name
-        absolute_url = content_object.get_absolute_url()
         subject = '[%s] New comment posted on "%s"' % (site_name, absolute_url)
 
         try:
@@ -215,12 +217,14 @@ def http_get_view(request):
     action = request.GET["pylucid_comments"]
 
     if action == "get_form":
-        return _get_form(request)
+        response = _get_form(request)
     elif action == "submit":
-        return _form_submission(request)
+        response = _form_submission(request)
     else:
         debug_msg = "Wrong get view parameter!"
         return bad_request(APP_LABEL, "error", debug_msg) # Return HttpResponseBadRequest
+
+    return response
 
 
 def lucidTag(request):

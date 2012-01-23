@@ -1,20 +1,58 @@
 # coding: utf-8
 
-from django import http
-from django.conf import settings
-from django.core.cache import cache
-from Cookie import SimpleCookie
-from django.utils.cache import get_max_age, patch_response_headers
-from django.http import HttpResponse
 import sys
-from django.utils.log import getLogger
+
+from django.conf import settings
 from django.contrib import messages
+from django.core.cache import cache
+from django.http import HttpResponse
+from django.utils import log
+from django.utils.cache import get_max_age, patch_response_headers
+
+logger = log.getLogger("PyLucidCacheMiddleware")
+
+if "runserver" in sys.argv or "tests" in sys.argv:
+    log.logging.basicConfig(format='%(created)f pid:%(process)d %(message)s')
+    logger.setLevel(log.logging.DEBUG)
+    logger.addHandler(log.logging.StreamHandler())
+
+if not logger.handlers:
+    # ensures we don't get any 'No handlers could be found...' messages
+    logger.addHandler(log.NullHandler())
 
 
-logger = getLogger("PyLucidCacheMiddleware")
-#logger.setLevel(logging.DEBUG)
-#logger.addHandler(logging.StreamHandler())
+def build_cache_key(request, url):
+    """
+    Build the cache key based on the url and:
+    
+    * LANGUAGE_CODE: The language code in the url can be different than the
+        used language for gettext translation.
+    * SITE_ID: request.path is the url without the domain name. So the same
+        url in site A and B would result in a collision.
+    """
+    try:
+        language_code = request.LANGUAGE_CODE # set in django.middleware.locale.LocaleMiddleware
+    except AttributeError:
+        etype, evalue, etb = sys.exc_info()
+        evalue = etype("%s (django.middleware.locale.LocaleMiddleware must be insert before cache middleware!)" % evalue)
+        raise etype, evalue, etb
 
+    site_id = settings.SITE_ID
+    cache_key = "%s:%s:%s" % (url, language_code, site_id)
+    logger.debug("Cache key: %r" % cache_key)
+    return cache_key
+
+
+def delete_cache_entry(request, url):
+    """ Delete a url from cache """
+    cache_key = build_cache_key(request, url)
+    if settings.DEBUG:
+        test = cache.get(cache_key)
+        if test is None:
+            logger.warn("Cache key %r not found!" % cache_key)
+        else:
+            logger.debug("Delete %r from cache, ok." % cache_key)
+    cache.delete(cache_key)
 
 
 class PyLucidCacheMiddlewareBase(object):
@@ -46,27 +84,9 @@ class PyLucidCacheMiddlewareBase(object):
         return True
 
     def get_cache_key(self, request):
-        """
-        Build the cache key based on the url and:
-        
-        * LANGUAGE_CODE: The language code in the url can be different than the
-            used language for gettext translation.
-        * SITE_ID: request.path is the url without the domain name. So the same
-            url in site A and B would result in a collision.
-        """
-        path = request.path
-
-        try:
-            language_code = request.LANGUAGE_CODE # set in django.middleware.locale.LocaleMiddleware
-        except AttributeError:
-            etype, evalue, etb = sys.exc_info()
-            evalue = etype("%s (django.middleware.locale.LocaleMiddleware must be insert before cache middleware!)" % evalue)
-            raise etype, evalue, etb
-
-        site_id = settings.SITE_ID
-        cache_key = "%s:%s:%s" % (path, language_code, site_id)
-        logger.debug("Cache key: %r" % cache_key)
-        return cache_key
+        """ return cache key for the current request.path """
+        url = request.path
+        return build_cache_key(request, url)
 
 
 class PyLucidFetchFromCacheMiddleware(PyLucidCacheMiddlewareBase):

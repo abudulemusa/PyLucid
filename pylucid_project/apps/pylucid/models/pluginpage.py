@@ -150,7 +150,7 @@ class PluginPage(BaseModel, UpdateInfoBaseModel):
             # FIXME: Better error with django model validation?
             raise AssertionError("Plugin can only exist on a plugin type tree entry!")
 
-        cache.clear() # FIXME: This cleaned the complete cache for every site!
+        cache.save_change_time() # FIXME: This cleaned the complete cache for every site!
         return super(PluginPage, self).save(*args, **kwargs)
 
     def __unicode__(self):

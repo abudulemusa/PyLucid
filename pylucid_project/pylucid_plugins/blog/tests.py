@@ -156,7 +156,7 @@ class BlogPluginAnonymousTest(BlogPluginTestCase):
     """
 
     def setUp(self):
-        cache.clear()
+        cache.save_change_time()
 
         from pylucid_project.apps.pylucid.preference_forms import SystemPreferencesForm
         system_preferences = SystemPreferencesForm()

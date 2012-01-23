@@ -91,7 +91,7 @@ class PageContent(BaseModel, MarkupBaseModel, UpdateInfoBaseModel):
         if self.pagemeta.pagetree.page_type != self.pagemeta.pagetree.PAGE_TYPE:
             # FIXME: Better error with django model validation?
             raise AssertionError("PageContent can only exist on a page type tree entry!")
-        cache.clear() # FIXME: This cleaned the complete cache for every site!
+        cache.save_change_time() # FIXME: This cleaned the complete cache for every site!
         return super(PageContent, self).save(*args, **kwargs)
 
     def __unicode__(self):

@@ -79,7 +79,7 @@ class BlogEntry(SiteM2M):
         """
         super(BlogEntry, self).save(*args, **kwargs)
 
-        cache.clear() # FIXME: This cleaned the complete cache for every site!
+        cache.save_change_time() # FIXME: This cleaned the complete cache for every site!
 
     def get_permalink(self, request, slug=None):
         """
@@ -308,7 +308,7 @@ class BlogEntryContent(MarkupBaseModel, UpdateInfoBaseModel):
 
         super(BlogEntryContent, self).save(*args, **kwargs)
 
-        cache.clear() # FIXME: This cleaned the complete cache for every site!
+        cache.save_change_time() # FIXME: This cleaned the complete cache for every site!
 
     def get_name(self):
         return self.headline

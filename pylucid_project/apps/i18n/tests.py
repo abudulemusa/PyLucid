@@ -37,7 +37,7 @@ class TestI18nWithCache(basetest.BaseLanguageTestCase):
         """
         #self.enable_i18n_debug()
 
-        cache.clear()
+        cache.save_change_time()
         response = self.client.get("/en/welcome/", HTTP_ACCEPT_LANGUAGE="de-de,de;q=0.8,en-us;q=0.5,en;q=0.3")
         self.assertRedirect(response, url="http://testserver/de/welcome/", status_code=301)
 
@@ -55,7 +55,7 @@ class TestI18n(basetest.BaseLanguageTestCase):
         - assertContentLanguage() - Check if response is in right language
     """
     def setUp(self):
-        cache.clear()
+        cache.save_change_time()
 
     def test_no_accept_language(self):
         """
@@ -166,7 +166,7 @@ class TestI18nMoreLanguages(basetest.BaseMoreLanguagesTestCase):
         - self.languages - A dict with language code as keys and language instance as values
     """
     def setUp(self):
-        cache.clear()
+        cache.save_change_time()
 
     def assertItsCroatian_with_en(self, response):
         """

@@ -56,7 +56,7 @@ class TestUnitestPlugin(basetest.BaseUnittest):
         )
 
     def test_anonymous(self):
-        cache.clear() # page message can be only see, if cache not used!
+        cache.save_change_time() # page message can be only see, if cache not used!
         response = self.client.get("/en/welcome/?unittest_plugin=MSG_ERROR")
 #        response = self.client.get("/pylucid_admin/plugins/internals/show_internals/")
         self.assertResponse(response,

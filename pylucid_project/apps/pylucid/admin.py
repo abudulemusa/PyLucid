@@ -383,11 +383,15 @@ class EditableHtmlHeadFileAdminForm(forms.ModelForm):
 
 
 class EditableHtmlHeadFileAdmin(VersionAdmin):
+    def filepath2(self, *args, **kwargs):
+        print args, kwargs
+
     form = EditableHtmlHeadFileAdminForm
     change_list_template = "admin/pylucid/change_list_with_design_link.html"
     list_display = ("id", "filepath", "render", "description", "lastupdatetime", "lastupdateby")
     list_display_links = ("filepath", "description")
-    list_filter = ("render",)
+    list_filter = ("render", "filepath2")
+    date_hierarchy = 'lastupdatetime'
 
 admin.site.register(models.EditableHtmlHeadFile, EditableHtmlHeadFileAdmin)
 
