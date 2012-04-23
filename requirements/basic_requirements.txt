@@ -7,7 +7,7 @@ feedparser>=5.0.1,<5.1
 
 # http://pygments.org/
 # http://pypi.python.org/pypi/Pygments
-Pygments>=1.4,<1.5
+Pygments>=1.5,<1.6
 
 # http://trac.saddi.com/flup
 # http://pypi.python.org/pypi/flup
@@ -19,7 +19,7 @@ flup>=1.0.2,<1.1
 
 # https://github.com/etianen/django-reversion
 # http://pypi.python.org/pypi/django-reversion
-django-reversion>=1.4,<1.5
+django-reversion>=1.6,<1.7
 
 # https://github.com/jezdez/django-dbtemplates
 # http://pypi.python.org/pypi/django-dbtemplates
@@ -31,4 +31,4 @@ django-tagging>=0.3.1,<0.4
 
 # http://south.aeracode.org/
 # http://pypi.python.org/pypi/South
-South>=0.7.3,<0.8
+South>=0.7.4,<0.8
