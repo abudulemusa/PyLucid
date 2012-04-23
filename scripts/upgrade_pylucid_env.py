@@ -166,16 +166,22 @@ def parse_requirements(filename):
     return entries
 
 
-def call_pip(options, *args):
+def call_pip(options, no_dependencies, *args):
     pip_executeable = os.path.join(locations.bin_py, "pip")
+
     cmd = [
-        pip_executeable, "install", "--upgrade", "--no-dependencies",
-        "--download-cache=%s" % options.download_cache
+        pip_executeable, "install",
+        "--download-cache=%s" % options.download_cache, "--upgrade"
     ]
+    if no_dependencies:
+        cmd.append("--no-dependencies")
+
     if options.verbose:
         cmd.append("--verbose")
+
     if options.logfile:
         cmd.append("--log=%s" % options.logfile)
+
     cmd += args
     print("_" * get_terminal_size()[0])
     print(c.colorize(" ".join(cmd), foreground="blue"))
@@ -226,7 +232,11 @@ def select_requirement(options, filename):
 
 def do_upgrade(options, requirements):
     for requirement in requirements:
-        call_pip(options, requirement)
+        if "pylucid" in requirement:
+            no_dependencies = True
+        else:
+            no_dependencies = False
+        call_pip(options, no_dependencies, requirement)
 
 
 def main():
