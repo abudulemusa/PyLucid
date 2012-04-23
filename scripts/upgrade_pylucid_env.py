@@ -233,6 +233,21 @@ def select_requirement(options, filename):
 NO_DEPENDENCIES = ("pylucid", "django-processinfo")
 
 def do_upgrade(options, requirements):
+
+    pylucid_index = None
+    for no, requirement in enumerate(requirements):
+        if "pylucid" in requirement:
+            pylucid_index = no
+            break
+
+    if pylucid_index is not None:
+        # move pylucid to the beginning of the list
+        pylucid = requirements.pop(no)
+        requirements.insert(0, pylucid)
+
+#    print "\n".join(requirements)
+#    return
+
     def set_dependencies(requirement):
         for name in NO_DEPENDENCIES:
             if name in requirement:
