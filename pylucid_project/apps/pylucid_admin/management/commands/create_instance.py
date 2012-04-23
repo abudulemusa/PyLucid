@@ -173,8 +173,8 @@ class Command(BaseCommand):
 
         patch_data = [
             (
-                'MEDIA_ROOT = "/var/www/YourSite/media/"',
-                'MEDIA_ROOT = "%s"' % media_dest
+                'STATIC_ROOT = "/var/www/YourSite/media/"',
+                'STATIC_ROOT = "%s"' % media_dest
             ),
             (
                 'SECRET_KEY = "add-a-secret-key"',

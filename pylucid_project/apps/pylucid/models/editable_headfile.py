@@ -38,10 +38,10 @@ TAG_INPUT_HELP_URL = \
 
 
 HEADFILE_CACHE_PATH = os.path.join(
-    settings.MEDIA_ROOT, settings.PYLUCID.CACHE_DIR
+    settings.STATIC_ROOT, settings.PYLUCID.CACHE_DIR
 )
 HEADFILE_CACHE_URL = os.path.join(
-    settings.MEDIA_URL, settings.PYLUCID.CACHE_DIR
+    settings.STATIC_URL, settings.PYLUCID.CACHE_DIR
 )
 
 

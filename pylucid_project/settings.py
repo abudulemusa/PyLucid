@@ -44,9 +44,14 @@ from django_processinfo import app_settings as PROCESSINFO
 # Used by a few dynamic settings:
 RUN_WITH_DEV_SERVER = "runserver" in sys.argv
 
+def _pkg_path(obj):
+    return os.path.abspath(os.path.dirname(obj.__file__))
 
-PYLUCID_BASE_PATH = os.path.abspath(os.path.dirname(pylucid_project.__file__))
+#PYLUCID_BASE_PATH = os.path.abspath(os.path.dirname(pylucid_project.__file__))
+PYLUCID_BASE_PATH = _pkg_path(pylucid_project)
+DJANGO_BASE_PATH = _pkg_path(django)
 #print "PYLUCID_BASE_PATH:", PYLUCID_BASE_PATH
+#print "DJANGO_BASE_PATH:", DJANGO_BASE_PATH
 #PYLUCID_PLUGINS_ROOT = os.path.abspath(os.path.dirname(pylucid_plugins.__file__))
 
 #______________________________________________________________________________
@@ -183,11 +188,11 @@ TEMPLATE_DIRS = PYLUCID_PLUGIN_SETUP_INFO.template_dirs
 
 # Append "static" template directories:
 TEMPLATE_DIRS += (
-    os.path.join(os.path.abspath(os.path.dirname(django_tools.__file__)), "templates/"),
-    os.path.join(os.path.abspath(os.path.dirname(dbpreferences.__file__)), "templates/"),
-    os.path.join(os.path.abspath(os.path.dirname(django_processinfo.__file__)), "templates/"),
+    os.path.join(_pkg_path(django_tools), "templates/"),
+    os.path.join(_pkg_path(dbpreferences), "templates/"),
+    os.path.join(_pkg_path(django_processinfo), "templates/"),
 
-    os.path.join(os.path.abspath(os.path.dirname(django.__file__)), "contrib/admin/templates"),
+    os.path.join(_pkg_path(django), "contrib/admin/templates"),
 )
 #print "settings.TEMPLATE_DIRS:\n", "\n".join(TEMPLATE_DIRS)
 
@@ -206,6 +211,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.request",
+    "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     "pylucid_project.apps.pylucid.context_processors.pylucid",
 )
@@ -237,6 +243,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.comments',
     'django.contrib.redirects',
+    'django.contrib.staticfiles',
 
     # external apps shipped and used with PyLucid:
     'dbpreferences',
@@ -297,15 +304,6 @@ AUTH_PROFILE_MODULE = "pylucid.UserProfile"
 # STATIC FILES
 # http://www.djangoproject.com/documentation/static_files/
 
-# Serve static files for the development server?
-# Using this method is inefficient and insecure.
-# Do not use this in a production setting. Use this only for development.
-if RUN_WITH_DEV_SERVER:
-    SERVE_STATIC_FILES = True
-else:
-    SERVE_STATIC_FILES = False
-
-
 # Note: Every URL/path...
 # ...must be a absolute path.
 # ...must have a trailing slash.
@@ -313,23 +311,37 @@ else:
 # Absolute _local_filesystem_path_ to the directory that holds media.
 #     Example-1: "./media/" (default)
 #     Example-2: "/home/foo/htdocs/media/"
-MEDIA_ROOT = os.path.join(PYLUCID_BASE_PATH, "media") + "/"
+STATIC_ROOT = "./static/"#os.path.join(PYLUCID_BASE_PATH, "media") + "/"
 
 # Set base path for include plugin: 
 # http://www.pylucid.org/permalink/381/about-the-include-plugin
-PYLUCID_INCLUDE_BASEPATH = MEDIA_ROOT
+PYLUCID_INCLUDE_BASEPATH = STATIC_ROOT
 
-# URL that handles the media served from MEDIA_ROOT.
-#     Example-1: "/media/" (default)
+# URL that handles the static media served from STATIC_ROOT.
+#     Example-1: "/static/" (default)
 #     Examlpe-2: "http://other_domain.net/media/"
 #     Example-3: "http://media.your_domain.net/"
-MEDIA_URL = "/media/"
+STATIC_URL = "/static/"
 
 # URL prefix for admin media -- CSS, JavaScript and images.
 #     Examples-1: "/django/contrib/admin/media/" (default)
 #     Examples-2: "http://other_domain.net/media/django/"
 #     Examples-3: "http://django.media.your_domain.net/"
 ADMIN_MEDIA_PREFIX = "/django/contrib/admin/media/"
+
+STATICFILES_DIRS = (
+    os.path.join(DJANGO_BASE_PATH, "contrib/admin/static/"),
+    os.path.join(PYLUCID_BASE_PATH, "static/"),
+)
+#print "STATICFILES_DIRS:", STATICFILES_DIRS
+
+# Serve static files for the development server?
+# Using this method is inefficient and insecure.
+# Do not use this in a production setting. Use this only for development.
+if RUN_WITH_DEV_SERVER or "--insecure" in sys.argv:
+    SERVE_STATIC_FILES = True
+else:
+    SERVE_STATIC_FILES = False
 
 ADMIN_URL_PREFIX = 'admin'
 PYLUCID_ADMIN_URL_PREFIX = 'pylucid_admin'
@@ -341,7 +353,7 @@ LOGOUT_URL = "/?%s" % PYLUCID.AUTH_LOGOUT_GET_VIEW
 
 # TODO: must be used ;)
 SLUG_BLACKLIST = (
-    MEDIA_URL.strip("/").split("/", 1)[0],
+    STATIC_URL.strip("/").split("/", 1)[0],
     ADMIN_URL_PREFIX, PYLUCID_ADMIN_URL_PREFIX, PYLUCID.HEAD_FILES_URL_PREFIX,
 )
 
@@ -431,4 +443,9 @@ except ImportError, err:
     else:
         raise
 
-
+if DEBUG or RUN_WITH_DEV_SERVER:
+    from django.core.exceptions import ImproperlyConfigured
+    for dir in STATICFILES_DIRS:
+        if not os.path.isdir(dir):
+            msg = "Direcotry in STATICFILES_DIRS doesn't exist: %r" % dir
+            raise ImproperlyConfigured(msg)

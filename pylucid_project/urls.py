@@ -66,10 +66,13 @@ else:
 # serve static files
 if settings.SERVE_STATIC_FILES:
     # Should only enabled, if the django development server used.
-    print "Serve static file from MEDIA_ROOT:", settings.MEDIA_ROOT
+    # Note: the automatically serve static doesn't allow index views.
+    # So, we add this URL here and 'django-admin.py runserver --nostatic' is needed
+    # https://docs.djangoproject.com/en/1.4/ref/contrib/staticfiles/#runserver
+    print "Serve static file from STATIC_ROOT:", settings.STATIC_ROOT
     urlpatterns += patterns('',
-        url('^%s/(?P<path>.*)$' % settings.MEDIA_URL.strip("/"), 'django.views.static.serve',
-            {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
+        url('^%s/(?P<path>.*)$' % settings.STATIC_URL.strip("/"), 'django.views.static.serve',
+            {'document_root': settings.STATIC_ROOT, 'show_indexes': True}),
     )
 
 urlpatterns += patterns('',

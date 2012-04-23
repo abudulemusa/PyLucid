@@ -240,12 +240,12 @@ def model_graph(request):
     A.layout(prog='dot') # layout with default (neato)
 
     filename = "models_graph.png"
-    f = file(os.path.join(settings.MEDIA_ROOT, filename), "wb")
+    f = file(os.path.join(settings.STATIC_ROOT, filename), "wb")
     f.write(A.draw(format='png')) # draw png
     f.close()
 
     context = {
-        "url": posixpath.join(settings.MEDIA_URL, filename),
+        "url": posixpath.join(settings.STATIC_URL, filename),
     }
     return context
 

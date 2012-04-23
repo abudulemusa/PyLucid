@@ -372,7 +372,7 @@ class EditableHtmlHeadFileAdminForm(forms.ModelForm):
         model = models.EditableHtmlHeadFile
     class Media:
         js = (
-            settings.MEDIA_URL + "PyLucid/codemirror_editable_headfile.js",
+            settings.STATIC_URL + "PyLucid/codemirror_editable_headfile.js",
         )
 
     def __init__(self, *args, **kwargs):
@@ -422,7 +422,7 @@ admin.site.register(Site, SiteAdmin)
 
 class DBTemplatesAdminAdminForm(TemplateAdminForm):
     class Media:
-        js = (settings.MEDIA_URL + "PyLucid/codemirror_dbtemplates.js",)
+        js = (settings.STATIC_URL + "PyLucid/codemirror_dbtemplates.js",)
 
 #    def __init__(self, *args, **kwargs):
 #        super(DBTemplatesAdminAdminForm, self).__init__(*args, **kwargs)

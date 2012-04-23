@@ -5,7 +5,7 @@ import os, tempfile
 #
 # Here a example local_settings.py
 #
-# At least you must specify MEDIA_ROOT and DATABASES.
+# At least you must specify STATIC_ROOT and DATABASES.
 #
 # see also:
 # http://www.pylucid.org/permalink/332/a-complete-local_settingspy-example
@@ -14,14 +14,14 @@ BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
 # Absolute _local_filesystem_path_ to the directory that holds media.
-MEDIA_ROOT = "/var/www/YourSite/media/"
+STATIC_ROOT = "/var/www/YourSite/media/"
 
 
-# URL that handles the media served from MEDIA_ROOT.
+# URL that handles the media served from STATIC_ROOT.
 #     Example-1: "/media/" (default)
 #     Examlpe-2: "http://other_domain.net/media/"
 #     Example-3: "http://media.your_domain.net/"
-MEDIA_URL = "/media/"
+STATIC_URL = "/media/"
 
 
 # URL prefix for django admin media -- CSS, JavaScript and images. Saved in /django/contrib/admin/media/
