@@ -230,12 +230,17 @@ def select_requirement(options, filename):
     return selected_req
 
 
+NO_DEPENDENCIES = ("pylucid", "django-processinfo")
+
 def do_upgrade(options, requirements):
+    def set_dependencies(requirement):
+        for name in NO_DEPENDENCIES:
+            if name in requirement:
+                return True
+        return False
+
     for requirement in requirements:
-        if "pylucid" in requirement:
-            no_dependencies = True
-        else:
-            no_dependencies = False
+        no_dependencies = set_dependencies(requirement)
         call_pip(options, no_dependencies, requirement)
 
 
