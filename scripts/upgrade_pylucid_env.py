@@ -204,7 +204,7 @@ def select_requirement(options, filename):
         print(c.colorize("Abort, ok.", foreground="blue"))
         sys.exit()
 
-    selection = [i for i in input.split(",") if i.strip()]
+    selection = [i.strip() for i in input.split(",") if i.strip()]
     if len(selection) == 0:
         print(c.colorize("Abort, ok.", foreground="blue"))
         sys.exit()
