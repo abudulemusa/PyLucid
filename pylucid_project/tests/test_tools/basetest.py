@@ -73,7 +73,7 @@ class BaseUnittest(BaseTestCase, TestCase):
         """ Test if response is a PyLucid permission deny page """
         self.assertStatusCode(response, excepted_code=403)
         self.assertResponse(response,
-            must_contain=("<h1>Permission denied</h1>",),
+            must_contain=("<h1>403 Forbidden</h1>",),
             must_not_contain=("Traceback",)
         )
 
