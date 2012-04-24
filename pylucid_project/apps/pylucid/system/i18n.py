@@ -5,7 +5,7 @@
     PyLucid i18n tools
     ~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2009-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.p
 
 """
@@ -177,11 +177,17 @@ def activate_language(request, lang_entry, save=False):
     request.LANGUAGE_CODE = lang_entry.code
     request.PYLUCID.current_language = lang_entry
 
-    if settings.PYLUCID.I18N_DEBUG:
-        messages.success(request, 'Activate language "%s"' % lang_entry.code)
-
     # activate django i18n:
     translation.activate(lang_entry.code)
+    request.LANGUAGE_CODE = translation.get_language()
+    if settings.DEBUG or settings.PYLUCID.I18N_DEBUG:
+        if lang_entry.code != request.LANGUAGE_CODE:
+            messages.error(
+                request, 'Language "%s" was not activated from django! Fallback to "%s"' % (
+                lang_entry.code, request.LANGUAGE_CODE)
+            )
+        elif settings.PYLUCID.I18N_DEBUG:
+            messages.success(request, 'Language "%s" activated successfuly.' % lang_entry.code)
 
 
 def assert_language(request, language, save_get_parameter=False, check_url_language=False):
