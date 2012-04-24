@@ -206,8 +206,11 @@ class BlogPluginAnonymousTest(BlogPluginAnonymousTestCase):
             HTTP_ACCEPT_LANGUAGE=self.default_language.code,
         )
         self.assertBlogPage(response, self.default_language,
-            must_contain=('<meta name="robots" content="index,follow" />',),
-            must_not_contain=('<meta name="robots" content="noindex,nofollow" />',)
+            must_contain=('<meta name="robots" content="noindex,follow" />',),
+            must_not_contain=(
+                '<meta name="robots" content="index,follow" />',
+                '<meta name="robots" content="noindex,nofollow" />',
+            )
         )
 
     def test_tag_view_robots(self):
