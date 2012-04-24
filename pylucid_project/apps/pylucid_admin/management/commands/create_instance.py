@@ -173,7 +173,7 @@ class Command(BaseCommand):
 
         patch_data = [
             (
-                'STATIC_ROOT = "/var/www/YourSite/media/"',
+                'STATIC_ROOT = "/var/www/YourSite/static/"',
                 'STATIC_ROOT = "%s"' % media_dest
             ),
             (

@@ -309,8 +309,8 @@ AUTH_PROFILE_MODULE = "pylucid.UserProfile"
 # ...must have a trailing slash.
 
 # Absolute _local_filesystem_path_ to the directory that holds media.
-#     Example-1: "./media/" (default)
-#     Example-2: "/home/foo/htdocs/media/"
+#     Example-1: "./static/" (default)
+#     Example-2: "/home/foo/htdocs/static/"
 STATIC_ROOT = "./static/"#os.path.join(PYLUCID_BASE_PATH, "media") + "/"
 
 # Set base path for include plugin: 
@@ -319,15 +319,15 @@ PYLUCID_INCLUDE_BASEPATH = STATIC_ROOT
 
 # URL that handles the static media served from STATIC_ROOT.
 #     Example-1: "/static/" (default)
-#     Examlpe-2: "http://other_domain.net/media/"
+#     Examlpe-2: "http://other_domain.net/static/"
 #     Example-3: "http://media.your_domain.net/"
 STATIC_URL = "/static/"
 
 # URL prefix for admin media -- CSS, JavaScript and images.
-#     Examples-1: "/django/contrib/admin/media/" (default)
-#     Examples-2: "http://other_domain.net/media/django/"
+#     Examples-1: "/django/contrib/admin/static/" (default)
+#     Examples-2: "http://other_domain.net/static/django/"
 #     Examples-3: "http://django.media.your_domain.net/"
-ADMIN_MEDIA_PREFIX = "/django/contrib/admin/media/"
+ADMIN_MEDIA_PREFIX = "/django/contrib/admin/static/"
 
 STATICFILES_DIRS = (
     os.path.join(DJANGO_BASE_PATH, "contrib/admin/static/"),

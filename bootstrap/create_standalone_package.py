@@ -323,7 +323,7 @@ class StandalonePackageMaker(object):
         )
         patch_data = [
             (
-                'STATIC_ROOT = "/var/www/YourSite/media/"',
+                'STATIC_ROOT = "/var/www/YourSite/static/"',
                 'STATIC_ROOT = os.path.join(os.getcwd(), "media")'
             ),
             (

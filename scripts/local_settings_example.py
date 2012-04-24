@@ -14,18 +14,18 @@ BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
 # Absolute _local_filesystem_path_ to the directory that holds media.
-STATIC_ROOT = "/var/www/YourSite/media/"
+STATIC_ROOT = "/var/www/YourSite/static/"
 
 
 # URL that handles the media served from STATIC_ROOT.
-#     Example-1: "/media/" (default)
-#     Examlpe-2: "http://other_domain.net/media/"
+#     Example-1: "/static/" (default)
+#     Examlpe-2: "http://other_domain.net/static/"
 #     Example-3: "http://media.your_domain.net/"
-STATIC_URL = "/media/"
+STATIC_URL = "/static/"
 
 
-# URL prefix for django admin media -- CSS, JavaScript and images. Saved in /django/contrib/admin/media/
-ADMIN_MEDIA_PREFIX = "/media/django/"
+# URL prefix for django admin media -- CSS, JavaScript and images. Saved in /django/contrib/admin/static/
+ADMIN_MEDIA_PREFIX = "/static/django/"
 
 
 # Changeable if needed (But should be off in productive usage!):
