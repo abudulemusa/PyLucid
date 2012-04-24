@@ -211,7 +211,7 @@ def base_check(request):
         out.write("\nsettings.SECRET_KEY, ok.")
     out.write("\n" + "- " * 40)
 
-    if settings.DATABASE_ENGINE == "mysql":
+    if "mysql" in settings.DATABASES['default']['ENGINE']:
         try:
             import MySQLdb
             out.write("MySQLdb.__version__  : %s" % repr(MySQLdb.__version__))
