@@ -155,15 +155,18 @@ class EditableHtmlHeadFile(UpdateInfoBaseModel):
                 f.write(rendered_content)
                 f.close()
             except IOError, err:
+                if settings.DEBUG:
+                    failsafe_message("Can't save %r: %s" % (cachepath, err))
                 if auto_create_dir and err.errno == errno.ENOENT: # No 2: No such file or directory
                     # Try to create the out dir and save the cache file
                     path = os.path.dirname(cachepath)
-                    if not os.path.isdir(path):
+                    if os.path.isdir(path):
+                        failsafe_message("Path %r already exists! No write permissions?!?" % path)
+                        return
+                    else:
                         # Try to create cache path and save file
                         os.makedirs(path)
-                        msg = "Cache path %s created" % path
-#                        print msg
-                        failsafe_message(msg)
+                        failsafe_message("Cache path %s created" % path)
                         _save_cache_file(auto_create_dir=False)
                         return
                 raise
