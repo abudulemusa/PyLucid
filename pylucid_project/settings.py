@@ -259,6 +259,8 @@ if _DYNAMIC_SITE:
     INSTALLED_APPS += ('django_tools.dynamic_site',)
 del(_DYNAMIC_SITE)
 
+# Temp. work-a-round for https://github.com/jezdez/django-dbtemplates/pull/31
+DATABASE_ENGINE = "XXX"
 
 # Add all existing PyLucid apps + plugins
 INSTALLED_APPS += PYLUCID_PLUGIN_SETUP_INFO.installed_plugins
