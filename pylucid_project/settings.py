@@ -111,22 +111,11 @@ MIDDLEWARE_CLASSES = (
     'django_tools.middlewares.ThreadLocal.ThreadLocalMiddleware',
 )
 
-# For backward compatible - FIXME: Remove after v0.12 release
-try:
-    from django_tools import dynamic_site
-except ImportError:
-    # Wrong django-tools version -> skip
-    _DYNAMIC_SITE = False
-else:
-    del(dynamic_site)
-    _DYNAMIC_SITE = True
-    MIDDLEWARE_CLASSES += (
-        # Set SITE_ID dynamically base on the current domain name **Experimental** :
-        # To activate set "USE_DYNAMIC_SITE_MIDDLEWARE = True" in your local_settings.py
-        'django_tools.dynamic_site.middleware.DynamicSiteMiddleware',
-    )
-
+USE_DYNAMIC_SITE_MIDDLEWARE = True
 MIDDLEWARE_CLASSES += (
+    # Set SITE_ID dynamically base on the current domain name **Experimental** :
+    'django_tools.dynamic_site.middleware.DynamicSiteMiddleware',
+        
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -252,12 +241,8 @@ INSTALLED_APPS = (
     'tagging',
     'south',
     'django_processinfo',
+    'django_tools.dynamic_site',
 )
-
-# For backward compatible - FIXME: Remove after v0.12 release
-if _DYNAMIC_SITE:
-    INSTALLED_APPS += ('django_tools.dynamic_site',)
-del(_DYNAMIC_SITE)
 
 # Temp. work-a-round for https://github.com/jezdez/django-dbtemplates/pull/31
 DATABASE_ENGINE = "XXX"
