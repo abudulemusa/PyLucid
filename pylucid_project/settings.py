@@ -426,6 +426,12 @@ CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 48
 
 #_______________________________________________________________________________
 
+if "create_instance" in sys.argv:
+    # FIXME: If we not set a key here, the user can't execute the management command
+    # for creating a new page instance :(
+    SECRET_KEY = "Only a temp secret key for 'create instance' management command"
+
+#_______________________________________________________________________________
 
 try:
     from local_settings import *
