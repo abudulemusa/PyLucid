@@ -18,7 +18,7 @@
                 .../csrf_exempt_view/
                 /?unittest_plugin=csrf_test
 
-    :copyleft: 2009-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -145,17 +145,16 @@ def test_url_reverse(request, url_name):
 def test_PyLucid_api(request):
     """
     Test the PyLucid API
-    see also: http://www.pylucid.org/_goto/187/PyLucid-objects/
+    see also: http://www.pylucid.org/permalink/133/pylucid-objects
     """
     messages.info(request, PLUGINPAGE_API_TEST_PAGE_MSG)
 
     context = request.PYLUCID.context
     output = []
-    context_middlewares = context["context_middlewares"].keys()
+    context_middlewares = request.PYLUCID.context_middlewares.keys()
     context_middlewares.sort()
     output.append("context_middlewares: %s" % context_middlewares)
     output.append("lang_entry: %r" % request.PYLUCID.current_language)
-    output.append("page_template: %r" % request.PYLUCID.page_template)
     output.append("pagetree: %r" % request.PYLUCID.pagetree)
     output.append("pagemeta: %r" % request.PYLUCID.pagemeta)
 
@@ -181,7 +180,7 @@ def test_BreadcrumbPlugin(request):
     Add a link to the bradcrumbs.
     """
     lang = request.PYLUCID.current_language
-    breadcrumb = request.PYLUCID.context["context_middlewares"]["breadcrumb"]
+    breadcrumb = request.PYLUCID.request.PYLUCID.context_middlewares["breadcrumb"]
     add_url = "/%s/%s" % (lang.code, ADDED_LINK_URL)
     breadcrumb.add_link(name=ADDED_LINK_NAME, title=ADDED_LINK_TITLE, url=add_url)
 
@@ -198,4 +197,18 @@ def test_add_headfiles(request):
     context = request.PYLUCID.context
     output = render_to_response('unittest_plugin/test_extrahead_blocktag.html', context)
     return output
+
+#_____________________________________________________________________________
+
+
+def test_cache(request):
+    msg = request.COOKIES.get("test_messages", "not set")
+    return "Response from unittest_plugin.test_cache() [%s]" % msg
+
+def test_messages(request):
+    for msg_type in ("debug", "info", "success", "warning", "error"):
+        callable = getattr(messages, msg_type)
+        callable(request, "A %r message" % msg_type)
+    msg = request.COOKIES.get("test_messages", "not set")
+    return "Response from unittest_plugin.test_messages() [%s]" % msg
 

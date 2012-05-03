@@ -9,10 +9,20 @@
 """
 
 import os
+import re
 
+
+if __name__ == "__main__":
+    # run all unittest directly
+    os.environ['DJANGO_SETTINGS_MODULE'] = "pylucid_project.settings"
+
+from django import forms
 from django.conf import settings
-from django.test import TestCase
+from django.contrib.messages import constants as message_constants
 from django.contrib.sites.models import Site
+from django.core.cache import cache
+from django.test import TestCase
+from django.utils.html import conditional_escape
 
 from django_tools.unittest_utils.unittest_base import BaseTestCase
 
@@ -20,7 +30,6 @@ from pylucid_project.apps.pylucid.models import PageTree, Language, EditableHtml
 
 
 supported_languages = dict(settings.LANGUAGES)
-
 
 
 class BaseUnittest(BaseTestCase, TestCase):
@@ -81,22 +90,33 @@ class BaseUnittest(BaseTestCase, TestCase):
         with PyLucid modifications
         """
         url = response.request["PATH_INFO"]
+
+        # XXX: work-a-round for: https://github.com/gregmuellegger/django/issues/1
+        response.content = re.sub(
+            "js_sha_link(\+*)='(.*?)'",
+            "js_sha_link\g<1>='XXX'",
+            response.content
+        )
+        self.assertDOM(response,
+            must_contain=(
+                '<input id="id_username" maxlength="30" name="username" type="text" />',
+                '<input id="id_password" name="password" type="password" />',
+                '<input type="submit" value="Log in" />',
+            )
+        )
+
         self.assertResponse(response,
             must_contain=(
                 # django
                 '<form action="%s" method="post" id="login-form">' % url,
 
-                '<input id="id_username" maxlength="30" name="username" type="text" />',
-                '<input id="id_password" name="password" type="password" />',
-
-                '<input type="submit" value="Log in" />',
                 # from pylucid:
                 'JS-SHA-Login',
                 "Do really want to send your password in plain text?",
             ),
             must_not_contain=("Traceback",)
         )
-        self.failUnlessEqual(response.status_code, 200)
+        self.assertStatusCode(response, 200)
 
     def assertAtomFeed(self, response, language_code):
         # application/atom+xml; charset=utf8 -> application/atom+xml
@@ -167,9 +187,33 @@ class BaseLanguageTestCase(BaseUnittest):
     """
     Contains some language helper stuff.    
     """
+    def tearDown(self):
+        super(BaseLanguageTestCase, self).tearDown()
+        if self._system_preferences is not None:
+            # revert changes from self.enable_i18n_debug()
+            self._system_preferences["message_level_anonymous"] = self.old_message_level
+            self._system_preferences.save()
+        settings.DEBUG = False
+        settings.PYLUCID.I18N_DEBUG = False
+
+    def enable_i18n_debug(self):
+        """
+        enable DEBUG, PYLUCID.I18N_DEBUG and set message_level_anonymous to DEBUG.
+        """
+        cache.clear()
+        from pylucid_project.apps.pylucid.preference_forms import SystemPreferencesForm
+        self._system_preferences = SystemPreferencesForm()
+        self.old_message_level = self._system_preferences["message_level_anonymous"]
+        self._system_preferences["message_level_anonymous"] = message_constants.DEBUG
+        self._system_preferences.save()
+        settings.DEBUG = True
+        settings.PYLUCID.I18N_DEBUG = True
+
     def _pre_setup(self, *args, **kwargs):
         """ create some language related attributes """
         super(BaseLanguageTestCase, self)._pre_setup(*args, **kwargs)
+
+        self._system_preferences = None # used in enable_i18n_debug() and tearDown()
 
         # default language is defined with settings.LANGUAGE_CODE
         self.default_language = Language.objects._get_default_language()
@@ -249,3 +293,15 @@ class MarkupTestHelper(object):
 
         return txt
 
+
+if __name__ == "__main__":
+    # Run all unittest directly
+    from django.core import management
+
+    tests = __file__
+#    tests = "pylucid_plugins.page_admin.tests.PageAdminTest.test_translate_form"
+
+    management.call_command('test', tests,
+        verbosity=2,
+        failfast=True
+    )

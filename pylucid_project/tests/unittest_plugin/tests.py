@@ -21,10 +21,13 @@ if __name__ == "__main__":
     os.environ['DJANGO_SETTINGS_MODULE'] = "pylucid_project.settings"
 
 from django.conf import settings
+from django.contrib.messages import constants as message_constants
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.utils.log import getLogger
 
+from pylucid_project.apps.pylucid.preference_forms import SystemPreferencesForm
 from pylucid_project.system.pylucid_plugins import PYLUCID_PLUGINS
 from pylucid_project.tests.test_tools import basetest
 
@@ -53,8 +56,8 @@ class TestUnitestPlugin(basetest.BaseUnittest):
         )
 
     def test_anonymous(self):
-        self.login("superuser")
-        response = self.client.get("/?unittest_plugin=MSG_ERROR")
+        cache.clear() # page message can be only see, if cache not used!
+        response = self.client.get("/en/welcome/?unittest_plugin=MSG_ERROR")
 #        response = self.client.get("/pylucid_admin/plugins/internals/show_internals/")
         self.assertResponse(response,
             must_contain=("<html", "A error messages"),
@@ -87,11 +90,170 @@ class TestUnitestPluginPage(basetest.BaseUnittest):
             must_not_contain=("Traceback",)
         )
 
+    def tearDown(self):
+        super(TestUnitestPluginPage, self).tearDown()
+        settings.DEBUG = False
+
     def test_plugin_page(self):
         response = self.client.get(self.url)
         self.assertResponse(response,
-            must_contain=("String response from pylucid_plugins.unittest_plugin.view_root()"),
+            must_contain=("String response from pylucid_plugins.unittest_plugin.view_root()",),
             must_not_contain=("Traceback",)
+        )
+
+    def test_messages(self):
+        response = self.client.get(self.url + "test_messages/")
+        self.assertResponse(response,
+            must_contain=(
+                "Response from unittest_plugin.test_messages()",
+                "A &#39;debug&#39; message",
+                "A &#39;info&#39; message",
+                "A &#39;success&#39; message",
+                "A &#39;warning&#39; message",
+                "A &#39;error&#39; message",
+            ),
+            must_not_contain=("Traceback",)
+        )
+
+    def test_cache(self):
+        url = self.url + "test_cache/"
+        client = Client()
+
+        # put page to cache with [one]
+        client.cookies["test_messages"] = "one"
+        response = client.get(url)
+        self.assertResponse(response,
+            must_contain=(
+                "Response from unittest_plugin.test_cache() [one]",
+            ),
+            must_not_contain=("Traceback",)
+        )
+        self.assertFalse(response._from_cache)
+
+        # request page from cache, so not [two] -> old content with [one]
+        client.cookies["test_messages"] = "two"
+        response = client.get(url)
+        self.assertResponse(response,
+            must_contain=(
+                "Response from unittest_plugin.test_cache() [one]",
+            ),
+            must_not_contain=("Traceback",)
+        )
+        self.assertTrue(response._from_cache)
+
+    def test_non_caching_pages_with_messages(self):
+        system_preferences = SystemPreferencesForm()
+        system_preferences["message_level_anonymous"] = message_constants.DEBUG
+        system_preferences.save()
+
+        url = self.url + "test_messages/"
+        client = Client()
+
+        # Put page into cache?
+        client.cookies["test_messages"] = "one"
+        response = client.get(url)
+        self.assertResponse(response,
+            must_contain=(
+                "Response from unittest_plugin.test_messages() [one]",
+                "A &#39;debug&#39; message",
+                "A &#39;info&#39; message",
+                "A &#39;success&#39; message",
+                "A &#39;warning&#39; message",
+                "A &#39;error&#39; message",
+            ),
+            must_not_contain=("Traceback",)
+        )
+        self.assertFalse(response._from_cache)
+
+        # Request from cache?
+        client.cookies["test_messages"] = "two"
+        response = client.get(url)
+        self.assertResponse(response,
+            must_contain=(
+                "Response from unittest_plugin.test_messages() [two]",
+                "A &#39;debug&#39; message",
+                "A &#39;info&#39; message",
+                "A &#39;success&#39; message",
+                "A &#39;warning&#39; message",
+                "A &#39;error&#39; message",
+
+            ),
+            must_not_contain=("Traceback",)
+        )
+        self.assertFalse(response._from_cache)
+
+    def test_MessageLevelMiddleware(self):
+        url = self.url + "test_messages/"
+        client = Client()
+        system_preferences = SystemPreferencesForm()
+
+        def get_response(level):
+            system_preferences["message_level_anonymous"] = level
+            system_preferences.save()
+            return client.get(url)
+
+        self.assertResponse(get_response(message_constants.DEBUG),
+            must_contain=(
+                "Response from unittest_plugin.test_messages()",
+                "A &#39;debug&#39; message",
+                "A &#39;info&#39; message",
+                "A &#39;success&#39; message",
+                "A &#39;warning&#39; message",
+                "A &#39;error&#39; message",
+            ),
+            must_not_contain=("Traceback",)
+        )
+
+        self.assertResponse(get_response(message_constants.INFO),
+            must_contain=(
+                "Response from unittest_plugin.test_messages()",
+                "A &#39;info&#39; message",
+                "A &#39;success&#39; message",
+                "A &#39;warning&#39; message",
+                "A &#39;error&#39; message",
+            ),
+            must_not_contain=("Traceback",
+                "A &#39;debug&#39; message",
+            )
+        )
+
+        self.assertResponse(get_response(message_constants.SUCCESS),
+            must_contain=(
+                "Response from unittest_plugin.test_messages()",
+                "A &#39;success&#39; message",
+                "A &#39;warning&#39; message",
+                "A &#39;error&#39; message",
+            ),
+            must_not_contain=("Traceback",
+                "A &#39;info&#39; message",
+                "A &#39;debug&#39; message",
+            )
+        )
+
+        self.assertResponse(get_response(message_constants.WARNING),
+            must_contain=(
+                "Response from unittest_plugin.test_messages()",
+                "A &#39;warning&#39; message",
+                "A &#39;error&#39; message",
+            ),
+            must_not_contain=("Traceback",
+                "A &#39;success&#39; message",
+                "A &#39;info&#39; message",
+                "A &#39;debug&#39; message",
+            )
+        )
+
+        self.assertResponse(get_response(message_constants.ERROR),
+            must_contain=(
+                "Response from unittest_plugin.test_messages()",
+                "A &#39;error&#39; message",
+            ),
+            must_not_contain=("Traceback",
+                "A &#39;warning&#39; message",
+                "A &#39;success&#39; message",
+                "A &#39;info&#39; message",
+                "A &#39;debug&#39; message",
+            )
         )
 
 
@@ -167,7 +329,7 @@ class UnittestPluginCsrfTests(basetest.BaseUnittest):
             must_contain=("CSRF verification failed. Request aborted.",),
             must_not_contain=("Traceback",)
         )
-        self.failUnlessEqual(response.status_code, 403)
+        self.assertStatusCode(response, 403)
 
     def test_post_csrf_no_decorator_view_with_token(self):
         # get the current csrf token
@@ -188,27 +350,27 @@ class UnittestPluginCsrfTests(basetest.BaseUnittest):
     #--------------------------------------------------------------------------
 
     def test_get_csrf_in_get_view(self):
-        response = self.csrf_client.get("/?unittest_plugin=csrf_test")
+        response = self.csrf_client.get("/en/welcome/?unittest_plugin=csrf_test")
         self.assertResponse(response,
             must_contain=("<dt>view name</dt><dd>csrf get view</dd>",),
             must_not_contain=("Traceback",)
         )
 
     def test_post_csrf_in_get_view_without_token(self):
-        response = self.csrf_client.post("/?unittest_plugin=csrf_test")
+        response = self.csrf_client.post("/en/welcome/?unittest_plugin=csrf_test")
         self.assertResponse(response,
             must_contain=("CSRF verification failed. Request aborted.",),
             must_not_contain=("Traceback",)
         )
-        self.failUnlessEqual(response.status_code, 403)
+        self.assertStatusCode(response, 403)
 
     def test_post_csrf_in_get_view_with_token(self):
         # get the current csrf token
-        csrf_token = self.request_csrf_token("/?unittest_plugin=csrf_test")
+        csrf_token = self.request_csrf_token("/en/welcome/?unittest_plugin=csrf_test")
 
         # send a POST with csrf token
         response = self.csrf_client.post(
-            "/?unittest_plugin=csrf_test",
+            "/en/welcome/?unittest_plugin=csrf_test",
             data={"csrfmiddlewaretoken": csrf_token}
         )
         self.assertResponse(response,
@@ -225,12 +387,13 @@ if __name__ == "__main__":
     # Run all unittest directly   
     from django.core import management
 
+    tests = __file__
 #    tests = "pylucid_project.pylucid_plugins.unittest_plugin.tests"
-    tests = "pylucid_project.pylucid_plugins.unittest_plugin.tests.UnittestPluginCsrfTests"
+#    tests = "pylucid_project.pylucid_plugins.unittest_plugin.tests.UnittestPluginCsrfTests"
 #    tests = "pylucid_project.pylucid_plugins.unittest_plugin.tests.TestUnitestPlugin.test_if_plugin_exists"
 #    tests = "pylucid_project.pylucid_plugins.unittest_plugin.tests.TestUnitestPluginPage"
 
     management.call_command('test', tests,
         verbosity=2,
-#        failfast=True
+        failfast=True
     )

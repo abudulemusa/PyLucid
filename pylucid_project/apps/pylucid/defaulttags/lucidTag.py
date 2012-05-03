@@ -9,12 +9,6 @@
 
     registered in: ./PyLucid/defaulttags/__init__.py
 
-    Last commit info:
-    ~~~~~~~~~~~~~~~~~
-    $LastChangedDate$
-    $Rev$
-    $Author$
-
     :copyleft: 2007 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
@@ -122,6 +116,11 @@ class lucidTagNode(template.Node):
             request = context["request"]
         except KeyError:
             raise KeyError("request object not in context! You must add it into the template context!")
+
+        if getattr(request, "_dont_call_lucid_tags", False) == True:
+            # request._dont_call_lucid_tags = True was set in
+            # pylucid.system.pylucid_plugin.context_middleware_request()
+            return u"Skip any lucidTags!"
 
         plugin_name = self.plugin_name
         method_name = self.method_name

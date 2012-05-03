@@ -34,21 +34,17 @@ from pylucid_project.system.pylucid_plugins import PYLUCID_PLUGINS, PyLucidPlugi
 
 #-----------------------------------------------------------------------------
 
+# Disable dynamic site, if used:
+if getattr(settings, "USE_DYNAMIC_SITE_MIDDLEWARE", False):
+    settings.USE_DYNAMIC_SITE_MIDDLEWARE = False
+    settings.SITE_ID = 1
+
 PYLUCID_PROJECT_ROOT = os.path.abspath(os.path.dirname(pylucid_project.__file__))
 UNITTEST_PLUGIN_SRC_PATH = os.path.join(PYLUCID_PROJECT_ROOT, "tests", "unittest_plugin")
 UNITTEST_PLUGIN_DST_PATH = os.path.join(PYLUCID_PROJECT_ROOT, "pylucid_plugins", "unittest_plugin")
 
 #-----------------------------------------------------------------------------
 
-def sorted_flatatt(attrs):
-    """
-    same as original django.forms.util.flatatt(), but used sorted() for easy unittests.
-    see also:
-    http://groups.google.com/group/django-developers/browse_thread/thread/73de51ba44bb1a91
-    """
-    return u''.join([u' %s="%s"' % (k, conditional_escape(v)) for k, v in sorted(attrs.items())])
-
-#-----------------------------------------------------------------------------
 
 class PyLucidTestRunner(DjangoTestSuiteRunner):
     def _get_all_test_names(self):
@@ -85,6 +81,11 @@ class PyLucidTestRunner(DjangoTestSuiteRunner):
             print "insert unittest plugin via symlink:"
             print "%s -> %s" % (UNITTEST_PLUGIN_SRC_PATH, UNITTEST_PLUGIN_DST_PATH)
             os.symlink(UNITTEST_PLUGIN_SRC_PATH, UNITTEST_PLUGIN_DST_PATH)
+
+        template_dir = os.path.join(UNITTEST_PLUGIN_DST_PATH, "templates")
+        if not template_dir in settings.TEMPLATE_DIRS:
+            print "unittest_plugin added to settings.TEMPLATE_DIRS"
+            settings.TEMPLATE_DIRS += (template_dir,)
 
         plugin_name = "pylucid_project.pylucid_plugins.unittest_plugin"
         if not plugin_name in settings.INSTALLED_APPS:
@@ -167,20 +168,12 @@ class PyLucidTestRunner(DjangoTestSuiteRunner):
         return test_suite
 
     def setup_test_environment(self, *args, **kwargs):
-        # Monkeypatch django.forms.util.flatatt()
-        self._origin_flatatt = util.flatatt
-        util.flatatt = sorted_flatatt
-
         self._setup_unittest_plugin()
-
         super(PyLucidTestRunner, self).setup_test_environment(*args, **kwargs)
 
     def teardown_test_environment(self, *args, **kwargs):
-        util.flatatt = self._origin_flatatt # remove monkeypatch, why? Dont's know ;)
-
         print "remove unittest plugin symlink"
         os.remove(UNITTEST_PLUGIN_DST_PATH)
-
         super(PyLucidTestRunner, self).teardown_test_environment(*args, **kwargs)
 
 

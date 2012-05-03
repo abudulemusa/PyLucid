@@ -19,6 +19,8 @@ if __name__ == "__main__":
     # run all unittest directly
     os.environ['DJANGO_SETTINGS_MODULE'] = "pylucid_project.settings"
 
+from django.conf import settings
+
 from pylucid_project.tests.test_tools.basetest import BaseUnittest
 
 from pylucid_project.pylucid_plugins.search.preference_forms import SearchPreferencesForm
@@ -27,8 +29,8 @@ from pylucid_project.pylucid_plugins.search.preference_forms import SearchPrefer
 class SearchTest(BaseUnittest):
 
     def test_search(self):
-        response = self.client.post("/?search=", data={"search": "PyLucid"})
-        self.failUnlessEqual(response.status_code, 200)
+        response = self.client.post("/en/welcome/?search=", data={"search": "PyLucid"})
+        self.assertStatusCode(response, 200)
         self.assertResponse(response,
             must_contain=(
                 '<title>PyLucid CMS - Advanced search</title>',
@@ -51,16 +53,23 @@ class SearchTest(BaseUnittest):
         )
 
     def test_short_terms(self):
-        response = self.client.post("/?search=", data={"search": "py foo bar"})
-        self.failUnlessEqual(response.status_code, 200)
-        self.assertResponse(response,
+        response = self.client.post("/en/welcome/?search=", data={"search": "py foo bar"})
+        self.assertStatusCode(response, 200)
+
+        csrf_cookie = response.cookies.get(settings.CSRF_COOKIE_NAME, False)
+        csrf_token = csrf_cookie.value
+        self.assertDOM(response,
             must_contain=(
                 '<title>PyLucid CMS - Advanced search</title>',
-                "Ignore &#39;py&#39; (too small)",
-                "<input type='hidden' name='csrfmiddlewaretoken' value='",
+                "<input type='hidden' name='csrfmiddlewaretoken' value='%s' />" % csrf_token,
                 '<input type="hidden" name="search_page" value="true" >',
                 '<input autofocus="autofocus" id="id_search" name="search" required="required" type="text" value="py foo bar" />',
                 '<input type="submit" value="search" />',
+            )
+        )
+        self.assertResponse(response,
+            must_contain=(
+                "Ignore &#39;py&#39; (too small)",
                 'Search Form',
                 'Search results',
                 "Search in ", " plugins",
@@ -74,19 +83,26 @@ class SearchTest(BaseUnittest):
         )
 
     def test_no_search_term_left(self):
-        response = self.client.post("/?search=", data={"search": "py xy z"})
-        self.failUnlessEqual(response.status_code, 200)
-        self.assertResponse(response,
+        response = self.client.post("/en/welcome/?search=", data={"search": "py xy z"})
+        self.assertStatusCode(response, 200)
+
+        csrf_cookie = response.cookies.get(settings.CSRF_COOKIE_NAME, False)
+        csrf_token = csrf_cookie.value
+        self.assertDOM(response,
             must_contain=(
                 '<title>PyLucid CMS - Advanced search</title>',
+                "<input type='hidden' name='csrfmiddlewaretoken' value='%s' />" % csrf_token,
+                '<input type="hidden" name="search_page" value="true" >',
+                '<input autofocus="autofocus" id="id_search" name="search" required="required" type="text" value="py xy z" />',
+                '<input type="submit" value="search" />',
+            )
+        )
+        self.assertResponse(response,
+            must_contain=(
                 "Ignore &#39;py&#39; (too small)",
                 "Ignore &#39;xy&#39; (too small)",
                 "Ignore &#39;z&#39; (too small)",
                 "Error: no search term left, can&#39;t search",
-                "<input type='hidden' name='csrfmiddlewaretoken' value='",
-                '<input type="hidden" name="search_page" value="true" >',
-                '<input autofocus="autofocus" id="id_search" name="search" required="required" type="text" value="py xy z" />',
-                '<input type="submit" value="search" />',
                 'Search Form',
             ),
             must_not_contain=(

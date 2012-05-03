@@ -1,27 +1,30 @@
 # coding:utf-8
 
 """
-    search all PageContent pages
+    search Blog entries
+    ~~~~~~~~~~~~~~~~~~~
+    
+    :copyleft: 2008-2012 by the PyLucid team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details
 """
 
-from django.contrib.sites.models import Site
 
-from tagging.utils import parse_tag_input
+from django.db.models import Q
 
-from blog.models import BlogEntry
+from blog.models import BlogEntryContent
 
 
 def get_search_results(request, search_languages, search_strings, search_results):
-    queryset = BlogEntry.on_site
 
-    # Only public blog items:
-    queryset = queryset.filter(is_public=True)
+    queryset = BlogEntryContent.objects.get_prefiltered_queryset(request, tags=None, filter_language=False)
 
     # Only items in the selected search language
     queryset = queryset.filter(language__in=search_languages)
 
     for term in search_strings:
-        queryset = queryset.filter(content__icontains=term)
+        queryset = queryset.filter(
+            Q(content__icontains=term) | Q(tags__icontains=term) | Q(headline__icontains=term)
+        )
 
     for item in queryset:
         meta_content = item.tags
@@ -40,7 +43,7 @@ def get_search_results(request, search_languages, search_strings, search_results
             url=item.get_absolute_url(),
 
             # the main content -> result lines would be cut out from hits in this content
-            content=item.content,
+            content=item.get_search_content(request),
 
             # hits in meta content has a higher score, but the content would not displayed 
             meta_content=meta_content,

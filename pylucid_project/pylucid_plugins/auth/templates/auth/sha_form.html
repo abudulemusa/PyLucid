@@ -29,7 +29,7 @@ try {
     alert("Error, jQuery JS not loaded!\n Original error was:" + e);
 }
 
-jQuery(document).ready(function($) {
+jQuery(document).ready(function($) {   
     if (challenge.length != SALT_LEN) {
         alert("Wrong challenge from server length:" + challenge.length + "!=" + SALT_LEN);
         return false;
@@ -55,10 +55,7 @@ jQuery(document).ready(function($) {
     $("#id_username").focus();
 
 	// remove old page_msg, if exist
-	log("is_ajax: '{{ is_ajax }}'");
-	if ("{{ is_ajax }}" == "True") {
-		$("#page_msg").slideUp();
-	}
+	$("#page_msg").slideUp();
 
 	$("#id_username").change(function() {
 		// if the username change, we must get a new salt from server.
@@ -102,7 +99,9 @@ jQuery(document).ready(function($) {
 
 			if (salt=="") {
 				page_msg_info("{% trans 'Get the hash salt value from server...' %}");
-                var post_data = {"username": username};
+                var post_data = {
+                    "username": username,
+                };
                 log("get user salt from server, send POST:" + $.param(post_data));
 				response = $.ajax({
 					async: false,
@@ -151,14 +150,16 @@ jQuery(document).ready(function($) {
 		    sha_a2 = sha_hexdigest(challenge + sha_a);
 			if (sha_a2 == false) { return false; }
 
-		    // display SHA values
-			$("#sha_values_block").css("display", "block").slideDown();
-            $("#id_password").val(""); // 'delete' plaintext password
-			$("#password_block").slideUp();
-		    $("#id_sha_a2").val(sha_a2);
-            $("#id_sha_b").val(sha_b);
+		// display SHA values
+         	$("#password_block").slideUp(1).delay(500);
+		$("#sha_values_block").css("display", "block").slideDown();
+		$("#id_password").val(""); // 'delete' plaintext password
+		$("#id_sha_a2").val(sha_a2);
+		$("#id_sha_b").val(sha_b);
 
-			var post_data = {"username": username, "sha_a2": sha_a2, "sha_b": sha_b}
+			var post_data = {
+			    "username": username, "sha_a2": sha_a2, "sha_b": sha_b,
+			}
 			log("auth user, send POST:" + $.param(post_data));
 			page_msg_info("{% trans 'Send SHA-1 values to the server...' %}");
             response = $.ajax({

@@ -1,22 +1,33 @@
 # coding: utf-8
 
 """
+    Check requirements
+    ~~~~~~~~~~~~~~~~~~
+
     Check some external libs with pkg_resources.require()
     We only create warnings on VersionConflict and DistributionNotFound exceptions.
     
-    See also: ./scripts/requirements/external_apps.txt
-    See also: ./scripts/requirements/libs.txt
+    We use the requirements files from ./pylucid/requirements/*.txt
     
-    Format info for pkg_resources.require():
-    http://peak.telecommunity.com/DevCenter/PkgResources#requirement-objects
+    FIXME: Can it be that pkg_resources.require("pylucid") is sufficient?
+       
+    :copyleft: 2009-2011 by the PyLucid team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import os
+import sys
 import warnings
+import traceback
+
+from django.conf import settings
+
+#DEBUG = True
+DEBUG = False
 
 try:
     import pkg_resources
 except ImportError, e:
-    import sys
     etype, evalue, etb = sys.exc_info()
     evalue = etype(
         (
@@ -34,6 +45,11 @@ def check_require(requirements):
     Display only warnings on VersionConflict and DistributionNotFound exceptions.
     """
     for requirement in requirements:
+        if requirement == "pylucid":
+            # Skip, because pkg_resources.require() would check all requirement from pylucid, too.
+            continue
+        if DEBUG and settings.RUN_WITH_DEV_SERVER:
+            print requirement
         try:
             pkg_resources.require(requirement)
         except pkg_resources.VersionConflict, err:
@@ -42,30 +58,36 @@ def check_require(requirements):
             warnings.warn("Distribution not found: %s" % err)
 
 
-requirements = (
-    # http://www.djangoproject.com/
-    "django >= 1.3",
+def get_requirements():
+    def parse_requirements(filename):
+        filepath = os.path.normpath(os.path.join(settings.PYLUCID_BASE_PATH, "../requirements", filename))
+        if DEBUG and settings.RUN_WITH_DEV_SERVER:
+            print "Use %r" % filepath
+        f = file(filepath, "r")
+        entries = []
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or line.startswith("-r"):
+                continue
+            if line.startswith("-e "):
+                line = line.split("#egg=")[1]
+            if DEBUG and settings.RUN_WITH_DEV_SERVER:
+                print line
+            entries.append(line)
+        f.close()
+        return entries
 
-    # http://code.google.com/p/django-dbpreferences
-    "django-dbpreferences >= 0.4.0",
+    requirements = []
+    requirements += parse_requirements("basic_requirements.txt")
+    requirements += parse_requirements("normal_installation.txt")
+    return requirements
 
-    # http://code.google.com/p/django-tools/
-    "django-tools >= 0.15.0",
+try:
+    requirements = get_requirements()
+    check_require(requirements)
+except Exception, e:
+    if (DEBUG or settings.DEBUG) and settings.RUN_WITH_DEV_SERVER:
+        raise
 
-    # http://code.google.com/p/python-creole/
-    "python-creole >= 0.2.4",
-
-    # https://github.com/etianen/django-reversion
-    "django-reversion >= 1.1.2",
-
-    # http://code.google.com/p/django-dbtemplates/
-    "django-dbtemplates >= 0.5.8",
-
-    # http://code.google.com/p/django-tagging/
-    "django_tagging > 0.3",
-
-    # https://github.com/jezdez/django_compressor
-    "django-compressor >= 0.9.1",
-)
-
-check_require(requirements)
+    sys.stderr.write("Can't check requirements:")
+    sys.stderr.write(traceback.format_exc())

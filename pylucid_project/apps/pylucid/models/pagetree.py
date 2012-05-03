@@ -4,13 +4,7 @@
     PyLucid models
     ~~~~~~~~~~~~~~
 
-    Last commit info:
-    ~~~~~~~~~~~~~~~~~
-    $LastChangedDate: $
-    $Rev: $
-    $Author: $
-
-    :copyleft: 2009 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2011 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -23,8 +17,7 @@ from django.contrib.auth.models import Group
 from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.sites.models import Site
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
 from django.http import Http404
 from django.template.defaultfilters import slugify
@@ -32,17 +25,18 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 # http://code.google.com/p/django-tools/
-from django_tools.middlewares import ThreadLocal
 from django_tools import model_utils
+from django_tools.local_sync_cache.local_sync_cache import LocalSyncCache
+from django_tools.middlewares import ThreadLocal
+from django_tools.models import UpdateInfoBaseModel
 
 from pylucid_project.apps.pylucid.tree_model import BaseTreeModel, TreeGenerator
-from pylucid_project.apps.pylucid.models.base_models import BaseModel, BaseModelManager, UpdateInfoBaseModel
-
+from pylucid_project.base_models.base_models import BaseModelManager, BaseModel
+from pylucid_project.base_models.permissions import PermissionsBase
 
 
 TAG_INPUT_HELP_URL = \
 "http://google.com/search?q=cache:django-tagging.googlecode.com/files/tagging-0.2-overview.html#tag-input"
-
 
 
 class PageTreeManager(BaseModelManager):
@@ -53,8 +47,11 @@ class PageTreeManager(BaseModelManager):
         get_or_create() method, witch expected a request object as the first argument.
     """
     def filter_accessible(self, queryset, user):
-        """ filter all pages with can't accessible for the given user """
-
+        """
+        exclude form pagetree queryset all pages which the given user can't see
+        by checking PageTree.permitViewGroup
+        TODO: Check in unittests
+        """
         if user.is_anonymous():
             # Anonymous user are in no user group
             return queryset.filter(permitViewGroup__isnull=True)
@@ -63,7 +60,7 @@ class PageTreeManager(BaseModelManager):
             # Superuser can see everything ;)
             return queryset
 
-        # filter pages for not superuser and not anonymous
+        # filter pages for authenticated,normal users
 
         user_groups = user.groups.values_list('pk', flat=True)
 
@@ -77,7 +74,7 @@ class PageTreeManager(BaseModelManager):
         )
 
     def all_accessible(self, user=None, filter_showlinks=False):
-        """ returns all pages that the given user can access. """
+        """ returns a PageTree queryset with all items that the given user can access. """
         if user == None:
             user = ThreadLocal.get_current_user()
 
@@ -136,7 +133,9 @@ class PageTreeManager(BaseModelManager):
 
     def get_pagemeta(self, request, pagetree, show_lang_errors=True):
         """
-        retuns the PageMeta instance witch associated to the given >pagetree< instance.
+        return PageMeta instance witch associated to the given >pagetree< instance.
+        
+        raise PermissionDenied if current user hasn't the pagemeta.permitViewGroup permissions. 
         
         dissolving language in client favored languages
         if not exist:
@@ -166,7 +165,9 @@ class PageTreeManager(BaseModelManager):
                 msg += "This page %r doesn't exist in any languages???" % pagetree
             raise Http404(msg)
 
-        if tried_languages and show_lang_errors:
+        if tried_languages and show_lang_errors and (settings.DEBUG or request.user.is_authenticated()):
+            # We should not inform anonymous user, because the page
+            # would not caches, if messages exist!
             messages.info(request,
                 _(
                     "PageMeta %(slug)s doesn't exist in client"
@@ -179,8 +180,18 @@ class PageTreeManager(BaseModelManager):
                 }
             )
 
-        return pagemeta
+        # Check PageMeta.permitViewGroup permissions:
+        # TODO: Check this in unittests!
+        if pagemeta.permitViewGroup == None:
+            # everyone can't see this page
+            return pagemeta
+        elif request.user.is_superuser: # Superuser can see everything ;)
+            return pagemeta
+        elif request.user.is_authenticated() and pagemeta.permitViewGroup in request.user.groups:
+            return pagemeta
 
+        # The user is anonymous or is authenticated but is not in the right user group
+        raise PermissionDenied
 
     def get_page_from_url(self, request, url_path):
         """
@@ -205,7 +216,9 @@ class PageTreeManager(BaseModelManager):
 
             page_view_group = page.permitViewGroup
 
-            # Check permissions
+            # Check permissions only for PageTree
+            # Note: PageMeta.permitViewGroup would be checked in self.get_pagemeta()
+            # TODO: Check this in unittests!
             if request.user.is_anonymous():
                 # Anonymous user are in no user group
                 if page_view_group != None:
@@ -255,7 +268,7 @@ class PageTreeManager(BaseModelManager):
         return backlist
 
 
-class PageTree(BaseModel, BaseTreeModel, UpdateInfoBaseModel):
+class PageTree(BaseModel, BaseTreeModel, UpdateInfoBaseModel, PermissionsBase):
     """
     The CMS page tree
 
@@ -268,6 +281,10 @@ class PageTree(BaseModel, BaseTreeModel, UpdateInfoBaseModel):
         lastupdatetime -> datetime of the last change
         createby       -> ForeignKey to user who creaded this entry
         lastupdateby   -> ForeignKey to user who has edited this entry
+        
+    inherited from PermissionsBase:
+        validate_permit_group()
+        check_sub_page_permissions()
     """
     PAGE_TYPE = 'C'
     PLUGIN_TYPE = 'P'
@@ -308,6 +325,8 @@ class PageTree(BaseModel, BaseTreeModel, UpdateInfoBaseModel):
         # check if parent is the same entry: child <-> parent loop:
         super(PageTree, self).clean_fields(exclude)
 
+        message_dict = {}
+
         # Check if slug exist in the same sub tree:
         if "slug" not in exclude:
             queryset = PageTree.on_site.filter(slug=self.slug, parent=self.parent)
@@ -325,8 +344,7 @@ class PageTree(BaseModel, BaseTreeModel, UpdateInfoBaseModel):
                     parent_url = self.parent.get_absolute_url()
 
                 msg = "Page '%s<strong>%s</strong>/' exists already." % (parent_url, self.slug)
-                message_dict = {"slug": (mark_safe(msg),)}
-                raise ValidationError(message_dict)
+                message_dict["slug"] = (mark_safe(msg),)
 
         # Check if parent page is a ContentPage, a plugin page can't have any sub pages!
         if "parent" not in exclude and self.parent is not None and self.parent.page_type != self.PAGE_TYPE:
@@ -335,10 +353,45 @@ class PageTree(BaseModel, BaseTreeModel, UpdateInfoBaseModel):
                 "Can't use the <strong>plugin</strong> page '%s' as parent page!"
                 " Please choose a <strong>content</strong> page."
             ) % parent_url
-            message_dict = {"parent": (mark_safe(msg),)}
+            message_dict["parent"] = (mark_safe(msg),)
+
+        # Prevents that a unprotected page created below a protected page.
+        # TODO: Check this in unittests
+        # validate_permit_group() method inherited from PermissionsBase
+        self.validate_permit_group("permitViewGroup", exclude, message_dict)
+        self.validate_permit_group("permitEditGroup", exclude, message_dict)
+
+        # Warn user if PageTree permissions mismatch with sub pages
+        # TODO: Check this in unittests
+        queryset = PageTree.objects.filter(parent=self)
+        self.check_sub_page_permissions(# method inherited from PermissionsBase
+            ("permitViewGroup", "permitEditGroup"),
+            exclude, message_dict, queryset
+        )
+
+        if message_dict:
             raise ValidationError(message_dict)
 
-    _url_cache = {}
+    def recusive_attribute(self, attribute):
+        """
+        Goes the pagetree back to root and return the first match of attribute if not None.
+        
+        used e.g.
+            with permitViewGroup and permitEditGroup
+            from self.validate_permit_group() and self.check_sub_page_permissions()
+        """
+        parent = self.parent
+        if parent is None: # parent is the tree root
+            return None
+
+        if getattr(parent, attribute) is not None:
+            # the attribute was set by parent page
+            return parent
+        else:
+            # go down to root
+            return parent.recusive_attribute(attribute)
+
+    _url_cache = LocalSyncCache(id="PageTree_absolute_url")
     def get_absolute_url(self):
         """ absolute url *without* language code (without domain/host part) """
         if self.pk in self._url_cache:
@@ -364,9 +417,13 @@ class PageTree(BaseModel, BaseTreeModel, UpdateInfoBaseModel):
         """ reset PageMeta and PageTree url cache """
         from pagemeta import PageMeta # against import loops.
 
+        # Clean the local url cache dict
         self._url_cache.clear()
         PageMeta._url_cache.clear()
-        cache.clear() # FIXME: This cleaned the complete cache for every site!
+
+        # FIXME: We must clean the page cache, but this cleans it for every sites!
+        cache.clear()
+
         return super(PageTree, self).save(*args, **kwargs)
 
     def get_site(self):

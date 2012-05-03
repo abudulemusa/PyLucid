@@ -78,7 +78,7 @@ class LexiconPluginTestCase(basetest.BaseLanguageTestCase):
     )
 
     def assertLexiconPage(self, response, must_contain):
-        self.failUnlessEqual(response.status_code, 200)
+        self.assertStatusCode(response, 200)
         self.assertResponse(response, must_contain=must_contain,
             must_not_contain=("Traceback", "XXX INVALID TEMPLATE STRING")
         )
@@ -150,7 +150,7 @@ class LexiconPluginTest1(LexiconPluginTestCase):
         )
 
     def test_get_view(self):
-        response = self.client.get("/?lexicon=PyLucid CMS")
+        response = self.client.get("/en/welcome/?lexicon=PyLucid CMS")
         self.assertResponse(response,
             must_contain=(
                 'PyLucid CMS',
@@ -179,15 +179,27 @@ class LexiconPluginTest1(LexiconPluginTestCase):
         self.login("superuser")
         url = reverse("Lexicon-new_entry")
         response = self.client.get(url)
-        self.assertResponse(response,
+
+        csrf_cookie = response.cookies.get(settings.CSRF_COOKIE_NAME, False)
+        csrf_token = csrf_cookie.value
+
+        # XXX: work-a-round for: https://github.com/gregmuellegger/django/issues/1
+        response.content = response.content.replace(
+            """.html('<h2 class="noanchor">loading...</h2>');""",
+            """.html('loading...');"""
+        )
+        self.assertDOM(response,
             must_contain=(
-                "<title>PyLucid - Create a new lexicon entry</title>",
-                '<form action="%s" method="post" id="lexicon_form" class="pylucid_form">' % url,
-                "<input type='hidden' name='csrfmiddlewaretoken' value='",
+                "<input type='hidden' name='csrfmiddlewaretoken' value='%s' />" % csrf_token,
                 '<input id="id_term" maxlength="255" name="term" type="text" />',
                 '<textarea cols="40" id="id_content" name="content" rows="10"></textarea>',
                 '<input type="submit" name="save" value="save" />',
-
+            ),
+        )
+        self.assertResponse(response,
+            must_contain=(
+                "<title>PyLucid - Create a new lexicon entry</title>",
+                '<form', 'action="%s"' % url,
             ),
             must_not_contain=("Traceback", "Form errors", "field is required",
                 "XXX INVALID TEMPLATE STRING"

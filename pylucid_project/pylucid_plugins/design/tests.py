@@ -11,6 +11,7 @@
         - There exist only "PyLucid CMS" blog entry in english and german
         
     TODO:
+        * Rewrite tests if we use django-compressor
         * Test clone colorscheme in admin
     
     :copyleft: 2010-2011 by the PyLucid team, see AUTHORS for more details.
@@ -60,7 +61,7 @@ class SwitchDesignTest(basetest.BaseUnittest):
 
     def test_switch(self):
         # request root page before switch design
-        response = self.client.get("/")
+        response = self.client.get("/en/welcome/")
         self.assertResponse(response,
             must_contain=(
                 '<title>PyLucid CMS - Welcome to your PyLucid CMS =;-)</title>'
@@ -83,7 +84,7 @@ class SwitchDesignTest(basetest.BaseUnittest):
         )
 
         # request root page after design switch
-        response = self.client.get("/")
+        response = self.client.get("/en/welcome/")
         self.assertResponse(response,
             must_contain=(
                 '<title>PyLucid CMS - Welcome to your PyLucid CMS =;-)</title>'
@@ -96,7 +97,7 @@ class SwitchDesignTest(basetest.BaseUnittest):
         Design.objects.get(id=4).delete()
 
         # Should switch back to main design and give a page messages
-        response = self.client.get("/")
+        response = self.client.get("/en/welcome/")
         self.assertResponse(response,
             must_contain=(
                 '<title>PyLucid CMS - Welcome to your PyLucid CMS =;-)</title>',
@@ -116,11 +117,15 @@ class CloneDesignTest(basetest.BaseUnittest, TestCase):
 
     def test_request_form(self):
         response = self.client.get(self.url)
+        self.assertDOM(response,
+            must_contain=(
+                '<input id="id_new_name" name="new_name" type="text" />',
+            )
+        )
         self.assertResponse(response,
             must_contain=(
                 "Clone a existing page design",
-                '<input id="id_new_name" name="new_name" type="text" />',
-                '<select id="id_design" name="design">',
+                '<select', 'id="id_design"', 'name="design"',
                 "clone design",
             ),
             must_not_contain=("Traceback",)
@@ -140,11 +145,15 @@ class CloneDesignTest(basetest.BaseUnittest, TestCase):
         self.assertRedirect(response, url=new_url, status_code=302)
 
         response = self.client.get(new_url)
+        self.assertDOM(response,
+            must_contain=(
+                '<input id="id_new_name" name="new_name" type="text" />',
+            )
+        )
         self.assertResponse(response,
             must_contain=(
                 "Clone a existing page design",
-                '<input id="id_new_name" name="new_name" type="text" />',
-                '<select id="id_design" name="design">',
+                '<select', 'id="id_design"', 'name="design"',
                 "clone design",
                 "New design &#39;%s&#39; created." % new_name,
             ),
@@ -236,6 +245,9 @@ class FixtureDataDesignTest(BaseTestCase, TestCase):
         url = headfile.get_absolute_url(colorscheme)
         self.assertTrue("/PyLucid_cache/" in url)
         response = self.client.get(url)
+        self.assertResponse(response,
+            must_not_contain=("<head>", "<title>", "</body>", "</html>")
+        )
         return response
 
     def check_styles(self):
@@ -487,20 +499,22 @@ class FixtureDataDesignTest(BaseTestCase, TestCase):
             url="http://testserver" + self.url_edit_colorscheme1
         )
         response = self.client.get(self.url_edit_colorscheme1)
+        self.assertDOM(response,
+            must_contain=(
+                # colorscheme name:
+                '<input name="name" value="yellow" class="vTextField" maxlength="255" type="text" id="id_name" />',
+                #colors:
+                '<input name="color_set-0-name" value="background" class="vTextField" maxlength="128" type="text" id="id_color_set-0-name" />',
+                '<input style="background-ColorValue:#222200;" name="color_set-0-value" value="222200" maxlength="6" type="text" id="id_color_set-0-value" />',
+                '<input name="color_set-0-name" value="background" class="vTextField" maxlength="128" type="text" id="id_color_set-0-name" />',
+                '<input style="background-ColorValue:#0000ff;" name="color_set-1-value" value="0000ff" maxlength="6" type="text" id="id_color_set-1-value" />',
+            )
+        )
         self.assertResponse(response,
             must_contain=(
                 '<title>PyLucid - Change color scheme</title>',
                 'colorpicker.css', 'colorpicker.js',
                 'Change color scheme',
-
-                # colorscheme name:
-                'name="name" type="text" value="yellow" />',
-
-                # colors:
-                'name="color_set-0-name" type="text" value="background" />',
-                'name="color_set-0-value" style="background-ColorValue:#222200;" type="text" value="222200" />',
-                'name="color_set-1-name" type="text" value="foreground" />',
-                'name="color_set-1-value" style="background-ColorValue:#0000ff;" type="text" value="0000ff" />',
             ),
             must_not_contain=("Traceback", "This field is required.")
         )
@@ -688,5 +702,5 @@ if __name__ == "__main__":
 
     management.call_command('test', tests,
         verbosity=2,
-        failfast=True
+#        failfast=True
     )

@@ -1,5 +1,12 @@
 # coding: utf-8
 
+"""
+    PyLucid system preferences
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
+"""
 
 import warnings
 
@@ -28,11 +35,11 @@ class SystemPreferencesForm(DBPreferencesBaseForm):
 
     # We can't use ModelChoiceField here, is not supported in DBpreferences, yet.
     # see: http://code.google.com/p/django-dbpreferences/issues/detail?id=4
-    pylucid_admin_design = forms.ChoiceField(
-        # choices= Set in __init__, so the Queryset would not execute at startup
-        initial=None,
-        help_text=_("ID of the PyLucid Admin Design. (Not used yet!)")
-    )
+#    pylucid_admin_design = forms.ChoiceField(
+#        # choices= Set in __init__, so the Queryset would not execute at startup
+#        initial=None,
+#        help_text=_("ID of the PyLucid Admin Design. (Not used yet!)")
+#    )
 
     PERMALINK_USE_NONE = "nothing"
     PERMALINK_USE_SLUG = "slug"
@@ -93,21 +100,35 @@ class SystemPreferencesForm(DBPreferencesBaseForm):
         help_text=_("Set django message level for superusers to set the minimum message that will be displayed.")
     )
 
-    def __init__(self, *args, **kwargs):
-        super(SystemPreferencesForm, self).__init__(*args, **kwargs)
-        existing_designs = Design.on_site.all().values_list("id", "name")
+    max_log_entries = forms.IntegerField(
+        initial=1000, min_value=1,
+        help_text=_("The maximal numbers of log entries. After this the oldest log entries would be automatically deleted to protect against overloading."),
+    )
 
-        self.fields['pylucid_admin_design'].choices = existing_designs
-        self.base_fields['pylucid_admin_design'].choices = existing_designs
+    ban_count = forms.IntegerField(
+        help_text=_("Numbers of exceptions from one IP within 'ban_time' Sec. after IP would be banned. (Used 'REMOTE_ADDR')"),
+        initial=10, min_value=1, max_value=100
+    )
+    ban_time = forms.IntegerField(
+        help_text=_("Time period for count exceptions log messages from the same IP. (Used 'REMOTE_ADDR')"),
+        initial=30, min_value=1, max_value=600
+    )
 
-        # Fallback if admin design not set
-        initial = existing_designs[0][0]
-        for id, name in existing_designs:
-            if name == "PyLucid Admin":
-                initial = id
-                break
-
-        self.base_fields['pylucid_admin_design'].initial = initial
+#    def __init__(self, *args, **kwargs):
+#        super(SystemPreferencesForm, self).__init__(*args, **kwargs)
+#        existing_designs = Design.on_site.all().values_list("id", "name")
+#
+#        self.fields['pylucid_admin_design'].choices = existing_designs
+#        self.base_fields['pylucid_admin_design'].choices = existing_designs
+#
+#        # Fallback if admin design not set
+#        initial = existing_designs[0][0]
+#        for id, name in existing_designs:
+#            if name == "PyLucid Admin":
+#                initial = id
+#                break
+#
+#        self.base_fields['pylucid_admin_design'].initial = initial
 
     def get_preferences(self):
         """

@@ -15,7 +15,7 @@
     django documentation for a full list of all items:
         http://www.djangoproject.com/documentation/settings/
 
-    :copyleft: 2009-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -26,14 +26,24 @@ import sys
 try:
     #from django_tools.utils import info_print;info_print.redirect_stdout()
     import django
-    import dbpreferences
-    import django_tools
+    import dbpreferences # http://code.google.com/p/django-dbpreferences/
+    import django_tools # http://code.google.com/p/django-tools/
+    import django_processinfo # https://github.com/jedie/django-processinfo
     import pylucid_project
     from pylucid_project.system.plugin_setup_info import PyLucidPluginSetupInfo
 except Exception, e:
     import traceback
     sys.stderr.write(traceback.format_exc())
     raise
+
+
+# include app settings from ./django_processinfo/app_settings.py
+from django_processinfo import app_settings as PROCESSINFO
+
+
+# Used by a few dynamic settings:
+RUN_WITH_DEV_SERVER = "runserver" in sys.argv
+
 
 PYLUCID_BASE_PATH = os.path.abspath(os.path.dirname(pylucid_project.__file__))
 #print "PYLUCID_BASE_PATH:", PYLUCID_BASE_PATH
@@ -78,26 +88,56 @@ SITE_ID = 1 # Can be changed in local_settings
 
 ROOT_URLCONF = 'pylucid_project.urls'
 
+
 MIDDLEWARE_CLASSES = (
+    # Save process informations. More info: https://github.com/jedie/django-processinfo
+    'django_processinfo.middlewares.django_processinfo.ProcessInfoMiddleware',
+
+    # Block banned IP addresses and delete old pylucid.models.BanEntry items:
     'pylucid_project.middlewares.ip_ban.IPBanMiddleware',
 
     # Insert a statistic line into the generated page:
     'pylucid_project.middlewares.pagestats.PageStatsMiddleware',
 
-    'django.middleware.cache.UpdateCacheMiddleware',
+    # Calls check_state() for every "Local sync cache" to reset out-dated caches
+    'django_tools.local_sync_cache.LocalSyncCacheMiddleware.LocalSyncCacheMiddleware',
 
-    # From http://code.google.com/p/django-tools/
+    # make the request object everywhere available with a thread local storage:
     'django_tools.middlewares.ThreadLocal.ThreadLocalMiddleware',
+)
 
+# For backward compatible - FIXME: Remove after v0.12 release
+try:
+    from django_tools import dynamic_site
+except ImportError:
+    # Wrong django-tools version -> skip
+    _DYNAMIC_SITE = False
+else:
+    del(dynamic_site)
+    _DYNAMIC_SITE = True
+    MIDDLEWARE_CLASSES += (
+        # Set SITE_ID dynamically base on the current domain name **Experimental** :
+        # To activate set "USE_DYNAMIC_SITE_MIDDLEWARE = True" in your local_settings.py
+        'django_tools.dynamic_site.middleware.DynamicSiteMiddleware',
+    )
+
+MIDDLEWARE_CLASSES += (
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+
+    # Own simple cache implementation similar to https://docs.djangoproject.com/en/1.3/topics/cache/#the-per-site-cache
+    'pylucid_project.middlewares.cache.PyLucidFetchFromCacheMiddleware',
+    'pylucid_project.middlewares.cache.PyLucidUpdateCacheMiddleware',
+
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 
+    # Create request.user_settings at process_request() and save it on process_response():
     'dbpreferences.middleware.DBPreferencesMiddleware',
 
+    # Create request.PYLUCID and log process_exception(): 
     'pylucid_project.middlewares.pylucid_objects.PyLucidMiddleware',
 
     # slow down the django developer server
@@ -105,7 +145,6 @@ MIDDLEWARE_CLASSES = (
 #    'django_tools.middlewares.SlowerDevServer.SlowerDevServerMiddleware',
 
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
 
     'django.middleware.transaction.TransactionMiddleware',
     'reversion.middleware.RevisionMiddleware',
@@ -115,8 +154,10 @@ MIDDLEWARE_CLASSES = (
 
     # Set django message level by user type and system preferences:
     'pylucid_project.middlewares.message_level.MessageLevelMiddleware',
-)
 
+    # For PyLucid context middlewares API, see: http://www.pylucid.org/permalink/134/new-v09-plugin-api#context-middleware
+    "pylucid_project.middlewares.context_middlewares.PyLucidContextMiddlewares",
+)
 
 # Add stack information to every messages, but only if..
 #     ...settings.DEBUG == True
@@ -128,6 +169,7 @@ MESSAGE_STORAGE = "django_tools.utils.messages.StackInfoStorage"
 # initialized all pylucid plugins
 PYLUCID_PLUGIN_SETUP_INFO = PyLucidPluginSetupInfo(
     plugin_package_list=(
+        (PYLUCID_BASE_PATH, "pylucid_project", "apps"), # base apps
         (PYLUCID_BASE_PATH, "pylucid_project", "pylucid_plugins"),
         (PYLUCID_BASE_PATH, "pylucid_project", "external_plugins"),
     ),
@@ -135,21 +177,23 @@ PYLUCID_PLUGIN_SETUP_INFO = PyLucidPluginSetupInfo(
     verbose=False
 )
 
-TEMPLATE_DIRS = (
-    os.path.join(PYLUCID_BASE_PATH, "apps/pylucid/templates/"),
-    os.path.join(PYLUCID_BASE_PATH, "apps/pylucid_admin/templates/"),
-    os.path.join(PYLUCID_BASE_PATH, "apps/pylucid_update/templates/"),
 
+# Add all templates subdirs from all existing PyLucid apps + plugins
+TEMPLATE_DIRS = PYLUCID_PLUGIN_SETUP_INFO.template_dirs
+
+# Append "static" template directories:
+TEMPLATE_DIRS += (
     os.path.join(os.path.abspath(os.path.dirname(django_tools.__file__)), "templates/"),
     os.path.join(os.path.abspath(os.path.dirname(dbpreferences.__file__)), "templates/"),
+    os.path.join(os.path.abspath(os.path.dirname(django_processinfo.__file__)), "templates/"),
+
     os.path.join(os.path.abspath(os.path.dirname(django.__file__)), "contrib/admin/templates"),
 )
-# Add all templates subdirs from all existing PyLucid plugins
-TEMPLATE_DIRS += PYLUCID_PLUGIN_SETUP_INFO.template_dirs
 #print "settings.TEMPLATE_DIRS:\n", "\n".join(TEMPLATE_DIRS)
 
+
 TEMPLATE_LOADERS = (
-    'dbtemplates.loader.load_template_source',
+    'dbtemplates.loader.Loader',
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 )
@@ -184,6 +228,7 @@ if DEBUG:
 #    warn_invalid_template_vars.add_warning()
 
 
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -199,13 +244,14 @@ INSTALLED_APPS = (
     'pylucid_project.apps.pylucid_update', # Only needed for v0.8 users
 
     # external apps shipped and used with PyLucid:
+	'django_tools.dynamic_site',
     'dbpreferences', # http://code.google.com/p/django-dbpreferences/
     'dbtemplates', # http://code.google.com/p/django-dbtemplates/
     'reversion', # http://code.google.com/p/django-reversion/
     'tagging', # http://code.google.com/p/django-tagging/
     'compressor', # https://github.com/jezdez/django_compressor
 )
-# Add all existing PyLucid plugins
+# Add all existing PyLucid apps + plugins
 INSTALLED_APPS += PYLUCID_PLUGIN_SETUP_INFO.installed_plugins
 #print "settings.INSTALLED_APPS:", "\n".join(INSTALLED_APPS)
 
@@ -215,6 +261,12 @@ COMMENTS_APP = "pylucid_project.pylucid_plugins.pylucid_comments"
 #Default: 'django.test.simple.run_tests'
 TEST_RUNNER = 'pylucid_project.tests.test_tools.test_runner.PyLucidTestRunner'
 
+if RUN_WITH_DEV_SERVER:
+    # print mails to console if dev server used.
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    ADMINS = (
+        ("test", "dev_server_test@example_domain.tld"),
+    )
 
 #_____________________________________________________________________________
 # PyLucid own settings
@@ -246,7 +298,11 @@ AUTH_PROFILE_MODULE = "pylucid.UserProfile"
 # Serve static files for the development server?
 # Using this method is inefficient and insecure.
 # Do not use this in a production setting. Use this only for development.
-SERVE_STATIC_FILES = False
+if RUN_WITH_DEV_SERVER:
+    SERVE_STATIC_FILES = True
+else:
+    SERVE_STATIC_FILES = False
+
 
 # Note: Every URL/path...
 # ...must be a absolute path.
@@ -256,6 +312,10 @@ SERVE_STATIC_FILES = False
 #     Example-1: "./media/" (default)
 #     Example-2: "/home/foo/htdocs/media/"
 MEDIA_ROOT = os.path.join(PYLUCID_BASE_PATH, "media") + "/"
+
+# Set base path for include plugin: 
+# http://www.pylucid.org/permalink/381/about-the-include-plugin
+PYLUCID_INCLUDE_BASEPATH = MEDIA_ROOT
 
 # URL that handles the media served from MEDIA_ROOT.
 #     Example-1: "/media/" (default)
@@ -293,20 +353,6 @@ SITE_STYLE_PREFIX = 'site_stylesheet'
 # The PyLucid install instrucion page:
 INSTALL_HELP_URL = "http://pylucid.org/_goto/186/v0-9-testing/"
 
-# Set the Django cache system. Should be changed in local_settings.py !
-# https://docs.djangoproject.com/en/dev/topics/cache/#setting-up-the-cache
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    }
-}
-# Use the same cache in dbtemplates.
-# You can also defined a different cache system.
-# more information: http://django-dbtemplates.readthedocs.org/en/latest/advanced/#caching
-CACHES["dbtemplates"] = CACHES["default"]
-
-CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
-
 # Django can't handling time zone very good.
 # The Django default TIME_ZONE is 'America/Chicago' (Central Standard Time Zone, (CST), UTC-6)
 # but this is not the best choice.
@@ -319,6 +365,12 @@ TIME_ZONE = "UTC"
 # (Default from django is en-us, but this doesn't exist in PyLucid installed data)
 LANGUAGE_CODE = "en"
 
+# https://docs.djangoproject.com/en/1.3/ref/settings/#std:setting-LOCALE_PATHS
+LOCALE_PATHS = (
+    os.path.join(PYLUCID_BASE_PATH, "apps", "pylucid", "locale"),
+)
+USE_I18N = True
+
 #_______________________________________________________________________________
 # dbtemplates settings
 # http://packages.python.org/django-dbtemplates/overview.html#settings
@@ -327,12 +379,46 @@ LANGUAGE_CODE = "en"
 DBTEMPLATES_USE_REVERSION = True
 
 #_______________________________________________________________________________
+# settings for local_sync_cache from django-tools
+
+if DEBUG and RUN_WITH_DEV_SERVER:
+    LOCAL_SYNC_CACHE_DEBUG = True
+else:
+    LOCAL_SYNC_CACHE_DEBUG = False
+
+LOCAL_SYNC_CACHE_BACKEND = "local_sync_cache"
+
+#_______________________________________________________________________________
+
+# Set the Django cache system.
+# The LocMemCache isn't memory-efficient. Should be changed in local_settings.py !
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'PyLucid-default-cache',
+    },
+    'dbtemplates': { # http://django-dbtemplates.readthedocs.org/en/latest/advanced/#caching
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'PyLucid-dbtemplates-cache',
+    },
+    LOCAL_SYNC_CACHE_BACKEND: { # https://github.com/jedie/django-tools/blob/master/django_tools/local_sync_cache/local_sync_cache.py
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'PyLucid-local_sync-cache',
+    },
+}
+
+# Set default cache timeout (in seconds) to 2 Days (used in own PyLucid cache middleware, too) 
+CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 48
+
+#_______________________________________________________________________________
 
 
 try:
     from local_settings import *
 except ImportError, err:
-    if str(err) == "No module named local_settings":
+    if "create_instance" in sys.argv:
+        pass
+    elif str(err) == "No module named local_settings":
         msg = (
             "There is no local_settings.py file in '%s' !"
             " (Original error was: %s)\n"
@@ -342,5 +428,3 @@ except ImportError, err:
         #raise ImproperlyConfigured(msg)
     else:
         raise
-
-

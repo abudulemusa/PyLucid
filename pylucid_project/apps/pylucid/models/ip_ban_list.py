@@ -5,6 +5,8 @@
     ~~~~~~~~~~~~~~~~~~~~
     
     A simple model witch contains IP addresses with a timestamp.
+    
+    TODO: Move IP-Ban + Log stuff into a separate app
         
     e.g. usage in plugins:
     --------------------------------------------------------------------------
@@ -14,13 +16,7 @@
     BanEntry.objects.add(request) # raised Http404!
     --------------------------------------------------------------------------
 
-    Last commit info:
-    ~~~~~~~~~~~~~~~~~
-    $LastChangedDate:$
-    $Rev:$
-    $Author: JensDiemer $
-
-    :copyleft: 2009 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -41,9 +37,21 @@ class BanEntryManager(models.Manager):
         Creates a log message after delete a BanEntry.
         This method called from pylucid_project.middlewares.ip_ban.IPBanMiddleware
         """
-        point_in_time = datetime.datetime.now() - timedelta
+        now = datetime.datetime.now()
+        point_in_time = now - timedelta
         queryset = self.all().filter(createtime__lte=point_in_time)
         for entry in queryset:
+            if entry.createtime is None:
+                # Work-a-round if createtime is None
+                entry.createtime = now
+                entry.save()
+                LogEntry.objects.log_action(
+                    app_label="pylucid", action="ip ban error.",
+                    request=request,
+                    message="Create time is None: %s" % entry,
+                )
+                return
+
             how_old_txt = timesince(entry.createtime, now=datetime.datetime.now())
             LogEntry.objects.log_action(
                 app_label="pylucid", action="release ip ban",
@@ -60,7 +68,11 @@ class BanEntryManager(models.Manager):
         """
         remote_addr = request.META["REMOTE_ADDR"]
         self.model(ip_address=remote_addr).save()
-        raise Http404("Add IP to ban list.")
+        LogEntry.objects.log_action(
+            app_label="pylucid", action="add ip ban",
+            message="Add %s to ban list." % remote_addr
+        )
+        raise Http404("You are now banned.")
 
 
 class BanEntry(models.Model):
@@ -74,7 +86,14 @@ class BanEntry(models.Model):
     ip_address = models.IPAddressField(_('Remote IP Address'),
         primary_key=True, help_text="This IP address will be banned."
     )
-    createtime = models.DateTimeField(auto_now_add=True, help_text="Create time")
+    createtime = models.DateTimeField(help_text="Create time")
+
+    def save(self, *args, **kwargs):
+        if self.createtime is None:
+            # New entry
+            now = datetime.datetime.now()
+            self.createtime = now
+        return super(BanEntry, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return u"BanEntry %s %s" % (self.ip_address, self.createtime)

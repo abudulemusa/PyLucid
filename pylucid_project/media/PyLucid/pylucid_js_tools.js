@@ -2,14 +2,17 @@
 // helper function for console logging
 // set debug to true to enable debug logging
 function log() {
-	if (typeof debug == "undefined") {
-		debug = false;
-	}
-    if (debug && window.console && window.console.log) {
-        window.console.log(Array.prototype.join.call(arguments,''));
+    if (typeof debug === 'undefined') {
+        // debug variable is undefined -> no debugging.
+        debug=false;
     }
+    if (debug && window.console && window.console.log)
+        window.console.log(Array.prototype.join.call(arguments,''));
 }
 log("pylucid_js_tools.js loaded.");
+
+
+var load_normal_link=false; // global return value
 
 
 function OpenInWindow(link) {
@@ -160,7 +163,26 @@ function pylucid_ajax_form_view(form_id) {
     });
 }
 
-
+function push_state(url, title) {
+    /*************************************************************************
+    try to add a history entry with HTML5
+    
+    see also:
+    https://developer.mozilla.org/en/DOM/Manipulating_the_browser_history#The_pushState%28%29.C2.A0method
+    *************************************************************************/
+    if (typeof(title) === 'undefined') var title = "";
+    
+    if (window.history && window.history.pushState) {
+        try {
+            history.pushState(null, title, url);
+        } catch (e) {
+            log("Can't use history.pushState:" + e);
+        }
+    } else {
+        log("No window.history.pushState :(");
+        //document.location.href = url; // <<-- would load the page as ajax and normal!!!
+    }
+}
 
 function get_pylucid_ajax_view(url) {
     /*************************************************************************
@@ -189,7 +211,7 @@ function get_pylucid_ajax_view(url) {
 
     var url = encodeURI(url);
     log("get:" + url);
-    
+
     load_normal_link = true;
     
     $.ajax({
@@ -359,7 +381,8 @@ function get_pylucid_comments_form() {
     log("post_data:"+post_data);
 
     $.ajax({
-        type: "POST",
+        async: false,
+        type: "GET",
         url: "?pylucid_comments=get_form",
         data: post_data,
         dataType: "html",
@@ -380,7 +403,9 @@ function get_pylucid_comments_form() {
 * code from: http://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
 * see also: http://docs.djangoproject.com/en/dev/releases/1.3/#csrf-exception-for-ajax-requests
 */
-$(document).ajaxSend(function(event, xhr, settings) {
+jQuery(document).ajaxSend(function(event, xhr, settings) {
+    log("ajax send...");
+    
     function getCookie(name) {
         var cookieValue = null;
         if (document.cookie && document.cookie != '') {
@@ -411,8 +436,8 @@ $(document).ajaxSend(function(event, xhr, settings) {
     function safeMethod(method) {
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
-
     if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+        log("set X-CSRFToken to:"+ getCookie('csrftoken'));
         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
     }
 });
@@ -479,13 +504,17 @@ jQuery(document).ready(function($) {
 	 * resize input fields                                                  */
     $(".pylucid_form input").each(function() {
         maxlength = $(this).attr("maxlength");
-        if (maxlength<=0) {
+        if (maxlength == undefined || maxlength<=0) {
             return;
         }
         if (maxlength > MAX_LENGTH) {
             maxlength = MAX_LENGTH;
         }
-        this.size=maxlength;
+        try {
+            this.size=maxlength;
+        } catch (e) {
+            log("Can't resize input field to '"+maxlength+"':" + e);
+        }
     });
 
     /************************************************************************

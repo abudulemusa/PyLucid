@@ -20,6 +20,8 @@ from django.db import models
 from django.core import exceptions
 from django.utils.translation import ugettext as _
 
+from south.modelsinspector import add_introspection_rules
+
 from pylucid_project.apps.pylucid.markup.widgets import MarkupContentWidget, \
     MarkupSelectWidget
 from pylucid_project.apps.pylucid.markup import MARKUP_CHOICES
@@ -129,6 +131,8 @@ class MarkupContentModelField(models.TextField):
         kwargs['widget'] = MarkupContentWidget()
         return super(MarkupContentModelField, self).formfield(**kwargs)
 
+add_introspection_rules([], ["^pylucid_project\.apps\.pylucid\.fields\.MarkupContentModelField"])
+
 
 class MarkupModelField(models.PositiveSmallIntegerField):
     # TODO: update in next migration release. Original was: models.IntegerField
@@ -144,6 +148,26 @@ class MarkupModelField(models.PositiveSmallIntegerField):
         # Use our own widget to put markup select field id into a JavaScript variable
         kwargs['widget'] = MarkupSelectWidget()
         return super(MarkupModelField, self).formfield(**kwargs)
+
+add_introspection_rules([], ["^pylucid_project\.apps\.pylucid\.fields\.MarkupModelField"])
+
+
+class RootAppChoiceField(models.CharField):
+    def get_choices_default(self):
+        from pylucid_project.apps.pylucid.models.pluginpage import PluginPage # import loops
+        PluginPage.objects.get_app_choices()
+
+
+try:
+    from south.modelsinspector import add_introspection_rules
+except ImportError:
+    pass
+else:
+    add_introspection_rules([], ["^pylucid_project\.apps\.pylucid\.fields.\ColorValueFormField"])
+    add_introspection_rules([], ["^pylucid_project\.apps\.pylucid\.fields.\ColorValueField"])
+    add_introspection_rules([], ["^pylucid_project\.apps\.pylucid\.fields.\MarkupContentModelField"])
+    add_introspection_rules([], ["^pylucid_project\.apps\.pylucid\.fields.\MarkupModelField"])
+    add_introspection_rules([], ["^pylucid_project\.apps\.pylucid\.fields.\RootAppChoiceField"])
 
 
 if __name__ == "__main__":

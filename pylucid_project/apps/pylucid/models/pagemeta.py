@@ -4,13 +4,7 @@
     PyLucid models
     ~~~~~~~~~~~~~~
 
-    Last commit info:
-    ~~~~~~~~~~~~~~~~~
-    $LastChangedDate: $
-    $Rev: $
-    $Author: $
-
-    :copyleft: 2009 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2011 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -18,6 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.core.cache import cache
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.defaultfilters import slugify
@@ -26,10 +21,13 @@ from django.utils.translation import ugettext_lazy as _
 
 # http://code.google.com/p/django-tools/
 from django_tools import model_utils
-from django_tools.tagging_addon.fields import jQueryTagModelField
-
-from pylucid_project.apps.pylucid.models.base_models import UpdateInfoBaseModel, BaseModel, BaseModelManager
+from django_tools.local_sync_cache.local_sync_cache import LocalSyncCache
 from django_tools.middlewares import ThreadLocal
+from django_tools.tagging_addon.fields import jQueryTagModelField
+from django_tools.models import UpdateInfoBaseModel
+
+from pylucid_project.base_models.base_models import BaseModelManager, BaseModel
+from pylucid_project.base_models.permissions import PermissionsBase
 
 
 TAG_INPUT_HELP_URL = \
@@ -76,7 +74,7 @@ class PageMetaManager(BaseModelManager):
         return pagemeta
 
 
-class PageMeta(BaseModel, UpdateInfoBaseModel):
+class PageMeta(BaseModel, UpdateInfoBaseModel, PermissionsBase):
     """
     Meta data for PageContent or PluginPage
 
@@ -85,11 +83,15 @@ class PageMeta(BaseModel, UpdateInfoBaseModel):
         lastupdatetime -> datetime of the last change
         createby       -> ForeignKey to user who created this entry
         lastupdateby   -> ForeignKey to user who has edited this entry
+        
+    inherited from PermissionsBase:
+        validate_permit_group()
+        check_sub_page_permissions()
     """
     objects = PageMetaManager()
     on_site = CurrentSiteManager()
 
-    pagetree = models.ForeignKey("pylucid.PageTree")
+    pagetree = models.ForeignKey("pylucid.PageTree") # Should we add null=True, blank=True here? see clean_fields() below
     language = models.ForeignKey("pylucid.Language")
 
     name = models.CharField(blank=True, max_length=150,
@@ -111,11 +113,80 @@ class PageMeta(BaseModel, UpdateInfoBaseModel):
     )
 
     permitViewGroup = models.ForeignKey(Group, related_name="%(class)s_permitViewGroup",
-        help_text="Limit viewable to a group?",
+        help_text="Limit viewable this page in this language to a user group?",
         null=True, blank=True,
     )
+    # FIXME: Add permitEditGroup, too.
+    # e.g.: allow only usergroup X to edit this page in language Y
+    # https://github.com/jedie/PyLucid/issues/57
 
-    _url_cache = {}
+    def clean_fields(self, exclude):
+        super(PageMeta, self).clean_fields(exclude)
+
+        message_dict = {}
+
+        try:
+            # We can only check the sub pages, if exists ;)
+            pagetree = self.pagetree
+        except ObjectDoesNotExist:
+            # FIXME: Should self.pagetree() field has null=True, blank=True ?
+            return
+
+        # Prevents that a unprotected page created below a protected page.
+        # TODO: Check this in unittests
+        # validate_permit_group() method inherited from PermissionsBase
+        self.validate_permit_group("permitViewGroup", exclude, message_dict)
+
+        # Warn user if PageMeta permissions mismatch with sub pages
+        # TODO: Check this in unittests
+        queryset = PageMeta.objects.filter(pagetree__parent=self.pagetree)
+        self.check_sub_page_permissions(# method inherited from PermissionsBase
+            ("permitViewGroup",), # TODO: permitEditGroup, read above
+            exclude, message_dict, queryset
+        )
+
+        if message_dict:
+            raise ValidationError(message_dict)
+
+    def recusive_attribute(self, attribute):
+        """
+        Goes the pagetree back to root and return the first match of attribute if not None.
+        
+        used e.g.
+            with permitViewGroup and permitEditGroup
+            from self.validate_permit_group() and self.check_sub_page_permissions()
+        """
+        parent_pagetree = self.pagetree.parent
+        if parent_pagetree is None: # parent is the tree root
+            return None
+
+        request = ThreadLocal.get_current_request()
+        if request is None:
+            # Check only if we are in a request
+            return
+
+        queryset = PageMeta.objects.filter(pagetree=parent_pagetree)
+        parent_pagemeta = None
+        languages = request.PYLUCID.languages # languages are in client prefered order
+        for language in languages:
+            try:
+                parent_pagemeta = queryset.get(language=language)
+            except PageMeta.DoesNotExist:
+                continue
+            else:
+                break
+
+        if parent_pagemeta is None:
+            return
+
+        if getattr(parent_pagemeta, attribute) is not None:
+            # the attribute was set by parent page
+            return parent_pagemeta
+        else:
+            # go down to root
+            return parent_pagemeta.recusive_attribute(attribute)
+
+    _url_cache = LocalSyncCache(id="PageMeta_absolute_url")
     def get_absolute_url(self):
         """ absolute url *with* language code (without domain/host part) """
         if self.pk in self._url_cache:
@@ -129,7 +200,7 @@ class PageMeta(BaseModel, UpdateInfoBaseModel):
         self._url_cache[self.pk] = url
         return url
 
-    _permalink_cache = {}
+    _permalink_cache = LocalSyncCache(id="PageMeta_permalink")
     def get_permalink(self):
         """
         return a permalink. Use page slug/name/title or nothing as additional text.
@@ -167,10 +238,14 @@ class PageMeta(BaseModel, UpdateInfoBaseModel):
 
     def save(self, *args, **kwargs):
         """ reset PageMeta and PageTree url cache """
+        # Clean the local url cache dict
         self._url_cache.clear()
         self._permalink_cache.clear()
         self.pagetree._url_cache.clear()
-        cache.clear() # FIXME: This cleaned the complete cache for every site!
+
+        # FIXME: We must clean the page cache, but this cleans it for every sites!
+        cache.clear()
+
         return super(PageMeta, self).save(*args, **kwargs)
 
     def get_site(self):

@@ -9,12 +9,42 @@
 <hr/>
 
 <h2>Cache status</h2>
+<p>current pid: {{ pid }}</p>
 <table>
-    <tr><th>item</th><th>item count</th><th>size</th></tr>
-{% for item in cache_status %}
-    <tr><td>{{ item.key }}</td><td>{{ item.length }}</td><td>{% if item.size %}{{ item.size|filesizeformat }}{% else %}-{% endif %}</td></tr>
+    <tr>
+    	<th>id</th>
+    	<th>item count</th>
+    	<th>size</th>
+    	<th>last reset</th>
+    	<th>global update time</th>
+    	<th>cleared</th>
+    	<th>init</th>
+    	<th>request</th>
+    	<th>own cleared</th>
+    	<th>ext cleared</th>
+    </tr>
+{% for item in cache_information %}
+    <tr>
+    	<td>{{ item.instance.id }}</td>
+    	<td>{{ item.length }}</td>
+    	<td>{% if item.size %}{{ item.size|filesizeformat }}{% else %}-{% endif %}</td>
+    	<td>{{ item.instance.last_reset }} ({{ item.last_reset_datetime }} - since: {{ item.last_reset_datetime|timesince }})</td>
+    	<td>
+    		{% if item.global_update_time %}
+    			{{ item.global_update_time }} ({{ item.global_update_datetime }} - since: {{ item.global_update_datetime|timesince }})
+    		{% else %}
+    			-
+    		{% endif %}
+    	</td>
+    	<td title="cleard in this thread?">{{ item.cleared|yesno }}</td>
+    	<td title="How often __init__ used, should allways be 1!">{{ item.init_counter }}</td>
+    	<td title="In how many requests was this cache used?">{{ item.instance.request_counter }}</td>
+    	<td title="How often was clear() called in own thread?">{{ item.instance.own_clear_counter }}</td>
+    	<td title="How often was clear() from external thread done?">{{ item.instance.ext_clear_counter }}</td>
+    </tr>
 {% endfor %}
 </table>
+
 
 <h2>urlpatterns</h2>
 <table>
@@ -77,9 +107,16 @@
 <h2>python sys.path</h2>
 <ul>
     {% for path in sys_path %}
-    <li>{{ path }}
-    </li>
+    <li>{{ path }}</li>
     {% endfor %}
 </ul>
+
+<h2>os.environ</h2>
+<dl>
+    {% for key, value in os_environ.items %}
+	  <dt>{{ key }}</dt>
+	  <dd>{{ value|escape }}</dd>
+    {% endfor %}
+</dl>
 <!-- view_content block end -->
 {% endblock %}

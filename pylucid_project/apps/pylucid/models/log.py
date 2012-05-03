@@ -1,10 +1,17 @@
 # coding: utf-8
 
 """
+    Log model
+    ~~~~~~~~~
+    
     TODO:
+    * Move IP-Ban + Log stuff into a separate app
     * handel proxy's 'HTTP_X_FORWARDED_FOR' values.
         See notes here:
         http://docs.djangoproject.com/en/1.0/ref/middleware/#reverse-proxy-middleware
+    
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import datetime
@@ -23,11 +30,10 @@ from django.utils.translation import ugettext_lazy as _
 
 # http://code.google.com/p/django-tools/
 from django_tools.middlewares import ThreadLocal
+from django_tools.models import UpdateInfoBaseModel
 
 # http://code.google.com/p/django-dbpreferences/
 from dbpreferences.fields import DictField
-
-from pylucid_project.apps.pylucid.models.base_models import UpdateInfoBaseModel
 
 
 META_KEYS = (
@@ -35,9 +41,8 @@ META_KEYS = (
     "HTTP_REFERER", "HTTP_USER_AGENT", "HTTP_ACCEPT_ENCODING", "HTTP_ACCEPT_LANGUAGE"
 )
 
+
 class LogEntryManager(models.Manager):
-
-
     def get_same_remote_addr(self, request):
         """
         return a QuerySet with all entries from the current remote Address.
@@ -112,6 +117,11 @@ class LogEntryManager(models.Manager):
 
         if hasattr(request, "PYLUCID"):
             kwargs["used_language"] = request.PYLUCID.current_language
+            preferences = request.PYLUCID.preferences # Get SystemPreferences
+        else:
+            from pylucid_project.apps.pylucid.preference_forms import SystemPreferencesForm # import loops
+            preferences_form = SystemPreferencesForm()
+            preferences = preferences_form.get_preferences()
 
         for key in META_KEYS:
             value = request.META.get(key)
@@ -121,6 +131,14 @@ class LogEntryManager(models.Manager):
 
         new_entry = self.model(**kwargs)
         new_entry.save()
+
+        # Auto cleanup Log Table to protect against overloading.                 
+        max_count = preferences.get("max_log_entries", 1000)
+        queryset = LogEntry.objects.order_by('-createtime')
+        ids = tuple(queryset[max_count:].values_list('id', flat=True))
+        if ids:
+            queryset.filter(id__in=ids).delete()
+
         return new_entry
 
 
