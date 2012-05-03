@@ -9,8 +9,8 @@
 docutils
 
 # http://www.djangoproject.com/
-# Official clone of the Django Subversion repository (readonly clone)
--e git+git://github.com/django/django.git@1.4.X#egg=django
+# Official Django git repository (readonly clone)
+-e git+git://github.com/django/django.git#egg=django
 
 # clone PyLucid own projects with git push access
 #-------------------------------------------------
