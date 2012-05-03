@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ## WARNING: This file is generated
-## python v2.7.1+ (r271:86832, Apr 11 2011, 18:13:53)  [GCC 4.5.2]
-## using: '/usr/local/lib/python2.7/dist-packages/virtualenv.pyc' v1.6.4
+## python v2.7.2+ (default, Oct  4 2011, 20:06:09)  [GCC 4.6.1]
+## using: '/usr/lib/python2.7/dist-packages/virtualenv.pyc' v1.6.4
 ## Generated with '/PyLucid_env/src/pylucid/bootstrap/create_bootstrap_script.py'
 #!/usr/bin/env python
 """Create a "virtual" Python installation
@@ -591,7 +591,8 @@ def _install_req(py_executable, unzip=False, distribute=False,
 def file_search_dirs():
     here = os.path.dirname(os.path.abspath(__file__))
     dirs = ['.', here,
-            join(here, 'virtualenv_support')]
+            #join(here, 'virtualenv_support')]
+            '/usr/share/python-virtualenv/']
     if os.path.splitext(os.path.dirname(__file__))[0] != 'virtualenv':
         # Probably some boot script; just in case virtualenv is installed...
         try:
@@ -730,9 +731,16 @@ def main():
     parser.add_option(
         '--distribute',
         dest='use_distribute',
-        action='store_true',
-        help='Use Distribute instead of Setuptools. Set environ variable '
-        'VIRTUALENV_USE_DISTRIBUTE to make it the default ')
+        action='store_true', default=True,
+        help='Ignored.  Distribute is used by default. See --setuptools '
+        'to use Setuptools instead of Distribute.')
+
+    parser.add_option(
+        '--setuptools',
+        dest='use_distribute',
+        action='store_false',
+        help='Use Setuptools instead of Distribute. Set environ variable '
+        'VIRTUALENV_USE_SETUPTOOLS to make it the default.')
 
     default_search_dirs = file_search_dirs()
     parser.add_option(
@@ -888,7 +896,7 @@ def call_subprocess(cmd, show_stdout=True,
 
 
 def create_environment(home_dir, site_packages=True, clear=False,
-                       unzip_setuptools=False, use_distribute=False,
+                       unzip_setuptools=False, use_distribute=True,
                        prompt=None, search_dirs=None, never_download=False):
     """
     Creates a new environment in ``home_dir``.
@@ -907,11 +915,11 @@ def create_environment(home_dir, site_packages=True, clear=False,
 
     install_distutils(home_dir)
 
-    if use_distribute or os.environ.get('VIRTUALENV_USE_DISTRIBUTE'):
-        install_distribute(py_executable, unzip=unzip_setuptools, 
+    if not use_distribute or os.environ.get('VIRTUALENV_USE_SETUPTOOLS'):
+        install_setuptools(py_executable, unzip=unzip_setuptools, 
                            search_dirs=search_dirs, never_download=never_download)
     else:
-        install_setuptools(py_executable, unzip=unzip_setuptools, 
+        install_distribute(py_executable, unzip=unzip_setuptools, 
                            search_dirs=search_dirs, never_download=never_download)
 
     install_pip(py_executable, search_dirs=search_dirs, never_download=never_download)
@@ -1542,34 +1550,34 @@ def create_bootstrap_script(extra_text, python_version=''):
 
 # requirements from normal_installation.txt
 NORMAL_INSTALLATION = ['feedparser>=5.0.1,<5.1',
- 'Pygments>=1.4,<1.5',
+ 'Pygments>=1.5,<1.6',
  'flup>=1.0.2,<1.1',
- 'django-reversion>=1.4,<1.5',
- 'django-dbtemplates>=1.1.1,<1.2',
+ 'django-reversion>=1.6,<1.7',
+ 'django-dbtemplates>=1.2,<1.3',
  'django-tagging>=0.3.1,<0.4',
- 'South>=0.7.3,<0.8',
- 'Django>=1.3.1,<1.4',
- 'python-creole>=0.8.2,<0.9',
+ 'South>=0.7.4,<0.8',
+ 'Django>=1.4,<1.5',
+ 'python-creole>=0.8.2,<1.1.0',
  'django-dbpreferences>=0.4.2,<0.5',
- 'django-tools>=0.19.5,<0.20',
+ 'django-tools>=0.22,<0.23',
  'django-processinfo>=0.4',
  '--editable=git+git://github.com/jedie/PyLucid.git#egg=pylucid']
 
 # requirements from developer_installation.txt
 DEVELOPER_INSTALLATION = ['feedparser>=5.0.1,<5.1',
- 'Pygments>=1.4,<1.5',
+ 'Pygments>=1.5,<1.6',
  'flup>=1.0.2,<1.1',
- 'django-reversion>=1.4,<1.5',
- 'django-dbtemplates>=1.1.1,<1.2',
+ 'django-reversion>=1.6,<1.7',
+ 'django-dbtemplates>=1.2,<1.3',
  'django-tagging>=0.3.1,<0.4',
- 'South>=0.7.3,<0.8',
+ 'South>=0.7.4,<0.8',
  'docutils',
- '--editable=git+git://github.com/django/django.git@1.3.X#egg=django',
+ '--editable=git+git://github.com/django/django.git@1.4.X#egg=django',
  '--editable=git+git@github.com:jedie/python-creole.git#egg=python-creole',
  '--editable=git+git@github.com:jedie/django-dbpreferences.git#egg=django-dbpreferences',
  '--editable=git+git@github.com:jedie/django-tools.git#egg=django-tools',
  '--editable=git+git@github.com:jedie/django-processinfo.git#egg=django-processinfo',
- '--editable=git+git@github.com:jedie/PyLucid.git#egg=pylucid']
+ '--editable=git+git@github.com:jedie/PyLucid.git@django1.4#egg=pylucid']
 
 # source bootstrap script: '/home/jens/PyLucid_env/src/pylucid/bootstrap/source-pylucid-boot.py'
 #-----------------------------------------------------------------------------
