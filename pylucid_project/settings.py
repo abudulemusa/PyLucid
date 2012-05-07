@@ -115,7 +115,7 @@ USE_DYNAMIC_SITE_MIDDLEWARE = True
 MIDDLEWARE_CLASSES += (
     # Set SITE_ID dynamically base on the current domain name **Experimental** :
     'django_tools.dynamic_site.middleware.DynamicSiteMiddleware',
-        
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -325,6 +325,13 @@ STATICFILES_DIRS = (
     os.path.join(PYLUCID_BASE_PATH, "static/"),
 )
 #print "STATICFILES_DIRS:", STATICFILES_DIRS
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # django-compressor:
+    'compressor.finders.CompressorFinder',
+)
 
 # Serve static files for the development server?
 # Using this method is inefficient and insecure.
