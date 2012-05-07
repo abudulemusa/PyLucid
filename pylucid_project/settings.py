@@ -234,18 +234,26 @@ INSTALLED_APPS = (
     'django.contrib.redirects',
     'django.contrib.staticfiles',
 
+    # PyLucid own apps:
+    'pylucid_project.apps.pylucid',
+    'pylucid_project.apps.pylucid_admin',
+    'pylucid_project.apps.pylucid_update', # Only needed for v0.8 users
+
     # external apps shipped and used with PyLucid:
-    'dbpreferences',
-    'dbtemplates',
-    'reversion',
-    'tagging',
-    'south',
-    'django_processinfo',
-    'django_tools.dynamic_site',
+	'django_tools.dynamic_site',
+    'dbpreferences', # http://code.google.com/p/django-dbpreferences/
+    'dbtemplates', # http://code.google.com/p/django-dbtemplates/
+    'reversion', # http://code.google.com/p/django-reversion/
+    'tagging', # http://code.google.com/p/django-tagging/
+    'compressor', # https://github.com/jezdez/django_compressor
+    'south', # http://south.aeracode.org/
+    'django_processinfo', # https://github.com/jedie/django-processinfo
 )
+
 
 # Temp. work-a-round for https://github.com/jezdez/django-dbtemplates/pull/31
 DATABASE_ENGINE = "XXX"
+
 
 # Add all existing PyLucid apps + plugins
 INSTALLED_APPS += PYLUCID_PLUGIN_SETUP_INFO.installed_plugins

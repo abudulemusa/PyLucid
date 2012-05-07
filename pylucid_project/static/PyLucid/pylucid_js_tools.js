@@ -92,10 +92,10 @@ function ajax_error_handler(XMLHttpRequest, textStatus, errorThrown) {
     log("response_text: '" + response_text + "'");
     if (!response_text) {
         response_text = "<h1>Ajax response error without any response text.</h1>";
-		response_text += "<p>textStatus:" + textStatus + "</p>"
-		response_text += "<p>errorThrown:" + errorThrown + "</p>"
+		response_text += "<p>textStatus:" + textStatus + "</p>";
+		response_text += "<p>errorThrown:" + errorThrown + "</p>";
 		replace_page_content(response_text, textStatus);
-		return
+		return;
     }
     replace_complete_page(response_text);
     load_normal_link = true;
@@ -263,10 +263,10 @@ function add_openinwindow_links() {
         var url = $(this).attr("href");
         var org_title = $(this).attr("title");
         
-        var new_link = ' <a href="'+url+'" onclick="return OpenInWindow(this);" target="_blank" title="'+org_title+' (Opens in a new window)">[^]</a>'
+        var new_link = ' <a href="'+url+'" onclick="return OpenInWindow(this);" target="_blank" title="'+org_title+' (Opens in a new window)">[^]</a>';
         
         $(this).after(new_link);
-    })
+    });
 }
 
 /*****************************************************************************
@@ -282,7 +282,7 @@ function process_markup() {
         $('#id_content').wysiwyg({controls: {html: { visible : true }}});
     } catch (e) {
         log("Error:" + e);
-        log("Info: The page template must include jquery.wysiwyg.js!")
+        log("Info: The page template must include jquery.wysiwyg.js!");
     }
     wysiwyg_used = true;
     
@@ -322,6 +322,18 @@ function setup_markup() {
 * PyLucid comments stuff
 */
 var pylucid_comments_preview = false;
+function insert_comments_form(html) {
+    log("insert_comments_form()");
+    $("#comment_form_div").html(html);
+    $("#comments_commit_status").slideUp();
+    
+    pylucid_comments_preview = false;
+    $("#comment_form").bind('submit', submit_comments_form);
+    $("input[name=preview]").click(function() {
+        log("preview clicked.");
+        pylucid_comments_preview = true;
+    });
+}
 function submit_comments_form() {
     log("submit: comment form");
     
@@ -356,18 +368,6 @@ function submit_comments_form() {
         error: ajax_error_handler // from pylucid_js_tools.js
     });
 }
-function insert_comments_form(html) {
-    log("insert_comments_form()");
-    $("#comment_form_div").html(html);
-    $("#comments_commit_status").slideUp();
-    
-    pylucid_comments_preview = false;
-    $("#comment_form").bind('submit', submit_comments_form);
-    $("input[name=preview]").click(function() {
-        log("preview clicked.");
-        pylucid_comments_preview = true;
-    });
-}
 function get_pylucid_comments_form() {
     log("get_pylucid_comments_form()");
     
@@ -376,7 +376,7 @@ function get_pylucid_comments_form() {
     
     var post_data = "content_type=";
     post_data += $("input#id_content_type").val();
-    post_data += "&object_pk="
+    post_data += "&object_pk=";
     post_data += $("input#id_object_pk").val();
     log("post_data:"+post_data);
 
@@ -474,11 +474,11 @@ jQuery(document).ready(function($) {
 	
     /************************************************************************
 	 * Add a "open in new window" link after the existing normal link.      */
-    add_openinwindow_links()
+    add_openinwindow_links();
     
     /************************************************************************
      * setup markup choice field and markup help                            */
-    if ( $('#id_markup').length ) { setup_markup() }
+    if ( $('#id_markup').length ) { setup_markup(); }
     
     /************************************************************************
 	 * Resize all textareas                                                 */
@@ -531,5 +531,4 @@ jQuery(document).ready(function($) {
         }
         $(this).nextAll().slideToggle("fast");
     });
-	
 });
