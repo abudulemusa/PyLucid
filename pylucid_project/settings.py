@@ -251,10 +251,6 @@ INSTALLED_APPS = (
 )
 
 
-# Temp. work-a-round for https://github.com/jezdez/django-dbtemplates/pull/31
-DATABASE_ENGINE = "XXX"
-
-
 # Add all existing PyLucid apps + plugins
 INSTALLED_APPS += PYLUCID_PLUGIN_SETUP_INFO.installed_plugins
 #print "settings.INSTALLED_APPS:", "\n".join(INSTALLED_APPS)
