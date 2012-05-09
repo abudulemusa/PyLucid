@@ -111,7 +111,9 @@ MIDDLEWARE_CLASSES = (
     'django_tools.middlewares.ThreadLocal.ThreadLocalMiddleware',
 )
 
+# activate django-tools DynamicSiteMiddleware:
 USE_DYNAMIC_SITE_MIDDLEWARE = True
+
 MIDDLEWARE_CLASSES += (
     # Set SITE_ID dynamically base on the current domain name **Experimental** :
     'django_tools.dynamic_site.middleware.DynamicSiteMiddleware',
@@ -240,7 +242,7 @@ INSTALLED_APPS = (
     'pylucid_project.apps.pylucid_update', # Only needed for v0.8 users
 
     # external apps shipped and used with PyLucid:
-	'django_tools.dynamic_site',
+	'django_tools.dynamic_site', # https://github.com/jedie/django-tools/blob/master/django_tools/dynamic_site/README.creole
     'dbpreferences', # http://code.google.com/p/django-dbpreferences/
     'dbtemplates', # http://code.google.com/p/django-dbtemplates/
     'reversion', # http://code.google.com/p/django-reversion/
