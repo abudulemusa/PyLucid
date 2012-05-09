@@ -31,6 +31,10 @@ docutils
 # http://pypi.python.org/pypi/django-processinfo
 -e git+git@github.com:jedie/django-processinfo.git#egg=django-processinfo
 
+# https://github.com/jedie/django-reversion-compare
+# http://pypi.python.org/pypi/django-reversion-compare/
+-e git+git@github.com:jedie/django-reversion-compare.git#egg=django-reversion-compare
+
 # http://www.pylucid.org/
 # http://pypi.python.org/pypi/PyLucid
 #-e git+git@github.com:jedie/PyLucid.git#egg=pylucid

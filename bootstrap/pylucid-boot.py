@@ -1779,6 +1779,7 @@ NORMAL_INSTALLATION = ['feedparser>=5.0.1,<5.1',
  'django-dbpreferences>=0.4.2,<0.5',
  'django-tools>=0.23,<0.24',
  'django-processinfo>=0.4',
+ 'django-reversion-compare',
  '--editable=git+git://github.com/jedie/PyLucid.git#egg=pylucid']
 
 # requirements from developer_installation.txt
@@ -1796,6 +1797,7 @@ DEVELOPER_INSTALLATION = ['feedparser>=5.0.1,<5.1',
  '--editable=git+git@github.com:jedie/django-dbpreferences.git#egg=django-dbpreferences',
  '--editable=git+git@github.com:jedie/django-tools.git#egg=django-tools',
  '--editable=git+git@github.com:jedie/django-processinfo.git#egg=django-processinfo',
+ '--editable=git+git@github.com:jedie/django-reversion-compare.git#egg=django-reversion-compare',
  '--editable=git+git@github.com:jedie/PyLucid.git@django1.4#egg=pylucid']
 
 # source bootstrap script: '/home/jens/PyLucid_env/src/pylucid/bootstrap/source-pylucid-boot.py'

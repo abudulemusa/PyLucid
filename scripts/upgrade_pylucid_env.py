@@ -50,8 +50,7 @@ CHOICES = {
     INSTALL_NORMAL:"normal_installation.txt",
     INSTALL_DEV:"developer_installation.txt",
 }
-
-
+NO_DEPENDENCIES = ("pylucid", "django-processinfo", "django-reversion-compare")
 
 
 class ColorOut(object):
@@ -229,8 +228,6 @@ def select_requirement(options, filename):
 
     return selected_req
 
-
-NO_DEPENDENCIES = ("pylucid", "django-processinfo")
 
 def do_upgrade(options, requirements):
 
