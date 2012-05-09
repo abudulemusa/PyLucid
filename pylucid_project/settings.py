@@ -250,6 +250,9 @@ INSTALLED_APPS = (
     'django_processinfo', # https://github.com/jedie/django-processinfo
 )
 
+# Temp. work-a-round for https://github.com/jezdez/django-dbtemplates/pull/31
+# TODO: remove until new django-dbtemplates release exist with the bugfix.
+DATABASE_ENGINE = "XXX"
 
 # Add all existing PyLucid apps + plugins
 INSTALLED_APPS += PYLUCID_PLUGIN_SETUP_INFO.installed_plugins
