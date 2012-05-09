@@ -246,6 +246,7 @@ INSTALLED_APPS = (
     'dbpreferences', # http://code.google.com/p/django-dbpreferences/
     'dbtemplates', # http://code.google.com/p/django-dbtemplates/
     'reversion', # http://code.google.com/p/django-reversion/
+    'reversion_compare', # https://github.com/jedie/django-reversion-compare
     'tagging', # http://code.google.com/p/django-tagging/
     'compressor', # https://github.com/jezdez/django_compressor
     'south', # http://south.aeracode.org/
