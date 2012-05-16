@@ -419,7 +419,7 @@ admin.site.register(Site, SiteAdmin)
 
 
 #-----------------------------------------------------------------------------
-# Use own ColorMirror editor in dbtemplates
+# Use CompareVersionAdmin and own ColorMirror editor in dbtemplates
 
 class DBTemplatesAdminAdminForm(TemplateAdminForm):
     class Media:
@@ -430,7 +430,7 @@ class DBTemplatesAdminAdminForm(TemplateAdminForm):
 
 
 
-class DBTemplatesAdmin(TemplateAdmin):
+class DBTemplatesAdmin(CompareVersionAdmin, TemplateAdmin):
     def _filesystem_template_path(self, template_name):
         """ return absolute filesystem path to given template name """
         for dir in settings.TEMPLATE_DIRS:
