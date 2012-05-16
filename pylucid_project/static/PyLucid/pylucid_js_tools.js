@@ -6,8 +6,15 @@ function log() {
         // debug variable is undefined -> no debugging.
         debug=false;
     }
-    if (debug && window.console && window.console.log)
-        window.console.log(Array.prototype.join.call(arguments,''));
+    if (debug && window.console && window.console.log) {
+        
+        try {
+            window.console.log(Array.prototype.join.call(arguments,''));
+        } catch (e) {
+            log("Error:" + e);
+        }
+
+    }
 }
 log("pylucid_js_tools.js loaded.");
 
@@ -170,7 +177,9 @@ function push_state(url, title) {
     see also:
     https://developer.mozilla.org/en/DOM/Manipulating_the_browser_history#The_pushState%28%29.C2.A0method
     *************************************************************************/
-    if (typeof(title) === 'undefined') var title = "";
+    if (typeof(title) === 'undefined') {
+        var title = "";
+    }
     
     if (window.history && window.history.pushState) {
         try {
@@ -532,3 +541,4 @@ jQuery(document).ready(function($) {
         $(this).nextAll().slideToggle("fast");
     });
 });
+
