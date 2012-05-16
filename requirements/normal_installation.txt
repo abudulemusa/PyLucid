@@ -26,7 +26,7 @@ django-tools>=0.23,<0.24
 django-processinfo>=0.4
 
 # http://pypi.python.org/pypi/django-reversion-compare/
-django-reversion-compare
+django-reversion-compare>=0.3.0
 
 # git readonly clone of PyLucid
 # http://www.pylucid.org/
