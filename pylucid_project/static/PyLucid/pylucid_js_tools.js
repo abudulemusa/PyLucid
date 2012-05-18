@@ -1,4 +1,3 @@
-
 // helper function for console logging
 // set debug to true to enable debug logging
 function log() {
@@ -94,18 +93,20 @@ function ajax_error_handler(XMLHttpRequest, textStatus, errorThrown) {
 	replace the complete page with the error text (django html traceback page)
 	*************************************************************************/
     log("ajax get response error!");
+    log("textStatus:" + textStatus);
     log(XMLHttpRequest);
     var response_text = XMLHttpRequest.responseText;
-    log("response_text: '" + response_text + "'");
+    //log("response_text: '" + response_text + "'");
     if (!response_text) {
         response_text = "<h1>Ajax response error without any response text.</h1>";
 		response_text += "<p>textStatus:" + textStatus + "</p>";
 		response_text += "<p>errorThrown:" + errorThrown + "</p>";
 		replace_page_content(response_text, textStatus);
-		return;
+		return false;
     }
     replace_complete_page(response_text);
     load_normal_link = true;
+    return false;
 }
 
 
@@ -239,7 +240,7 @@ function get_pylucid_ajax_view(url) {
     } else {
         // fall back to normal view, if ajax request failed.
         return load_normal_link; // The browser follow the link, if true
-    }    
+    } 
 }
 
 
