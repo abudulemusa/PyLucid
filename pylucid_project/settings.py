@@ -312,7 +312,7 @@ STATIC_ROOT = "./static/"#os.path.join(PYLUCID_BASE_PATH, "media") + "/"
 
 # Set base path for include plugin: 
 # http://www.pylucid.org/permalink/381/about-the-include-plugin
-PYLUCID_INCLUDE_BASEPATH = STATIC_ROOT
+PYLUCID_INCLUDE_BASEPATH = None
 
 # URL that handles the static media served from STATIC_ROOT.
 #     Example-1: "/static/" (default)
