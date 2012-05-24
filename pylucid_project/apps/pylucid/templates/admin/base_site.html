@@ -29,6 +29,49 @@
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrastyle block START -->{% endif %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/jwysiwyg/jquery.wysiwyg.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/pylucid_admin.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
+<style type="text/css">
+/* ----------------------------------------------------------------------------
+   Highlight important models and grayed out non important ones in django admin
+------------------------------------------------------------------------------- */
+.module th a[href="{% url admin:auth_permission_changelist %}"],
+.module th a[href="{% url admin:contenttypes_contenttype_changelist %}"],
+.module th a[href="{% url admin:pylucid_color_changelist %}"],
+.module th a[href="{% url admin:pylucid_userprofile_changelist %}"],
+.module th a[href="{% url admin:PyLucid_Update_blogcomment08_changelist %}"],
+.module th a[href="{% url admin:PyLucid_Update_blogentry_changelist %}"],
+.module th a[href="{% url admin:PyLucid_Update_blogtag_changelist %}"],
+.module th a[href="{% url admin:PyLucid_Update_js_logindata08_changelist %}"],
+.module th a[href="{% url admin:PyLucid_Update_page08_changelist %}"],
+.module th a[href="{% url admin:PyLucid_Update_style08_changelist %}"],
+.module th a[href="{% url admin:PyLucid_Update_template08_changelist %}"],
+.module th a[href="{% url admin:reversion_revision_changelist %}"],
+.module th a[href="{% url admin:reversion_version_changelist %}"],
+.module th a[href="{% url admin:tagging_taggeditem_changelist %}"],
+.module th a[href="{% url admin:tagging_tag_changelist %}"] {
+    color: #aaa;
+}
+
+.module th a[href="{% url admin:dbpreferences_preference_changelist %}"],
+.module th a[href="{% url admin:dbtemplates_template_changelist %}"],
+.module th a[href="{% url admin:pylucid_design_changelist %}"],
+.module th a[href="{% url admin:pylucid_logentry_changelist %}"],
+.module th a[href="{% url admin:redirect_redirectmodel_changelist %}"],
+.module th a[href="{% url admin:redirects_redirect_changelist %}"],
+.module th a[href="{% url admin:StreetMap_mapentry_changelist %}"],
+.module th a[href="{% url admin:django_processinfo_sitestatistics_changelist %}"] {
+    background-color: #e8eff6;
+    border-left: 5px solid #acc5e1;
+    display: block;
+}
+.module th {
+    padding: 0px;
+    vertical-align:middle;
+}
+.module th a {
+    padding: 5px;
+    vertical-align:middle;
+}
+</style>
 {% lucidTag extrahead filepath="pygments.css" %}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrastyle block END -->{% endif %}
 {% endcompress %}
