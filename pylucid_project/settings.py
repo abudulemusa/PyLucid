@@ -339,13 +339,6 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
-# Serve static files for the development server?
-# Using this method is inefficient and insecure.
-# Do not use this in a production setting. Use this only for development.
-if RUN_WITH_DEV_SERVER or "--insecure" in sys.argv:
-    SERVE_STATIC_FILES = True
-else:
-    SERVE_STATIC_FILES = False
 
 ADMIN_URL_PREFIX = 'admin'
 PYLUCID_ADMIN_URL_PREFIX = 'pylucid_admin'
