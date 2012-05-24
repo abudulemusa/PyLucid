@@ -326,9 +326,10 @@ STATIC_URL = "/static/"
 #     Examples-3: "http://django.media.your_domain.net/"
 ADMIN_MEDIA_PREFIX = "/django/contrib/admin/static/"
 
+# https://docs.djangoproject.com/en/1.4/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = (
-    os.path.join(DJANGO_BASE_PATH, "contrib/admin/static/"),
-    os.path.join(PYLUCID_BASE_PATH, "static/"),
+    #os.path.join(DJANGO_BASE_PATH, "contrib/admin/static/"),
+    #os.path.join(PYLUCID_BASE_PATH, "static/"),
 )
 #print "STATICFILES_DIRS:", STATICFILES_DIRS
 
