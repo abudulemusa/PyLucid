@@ -14,18 +14,27 @@ BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
 # Absolute _local_filesystem_path_ to the directory that holds media.
+#
+# STATIC_ROOT is for images, CSS, Javascript files that 
+#             are needed to render a complete web page
+# https://docs.djangoproject.com/en/1.4/ref/settings/#static-root
+#
+# MEDIA_ROOT is for user-uploaded media files (e.g. images)
+# https://docs.djangoproject.com/en/1.4/ref/settings/#media-root
+#
 STATIC_ROOT = "/var/www/YourSite/static/"
+MEDIA_ROOT = "/var/www/YourSite/media/"
 
 
-# URL that handles the media served from STATIC_ROOT.
-#     Example-1: "/static/" (default)
-#     Examlpe-2: "http://other_domain.net/static/"
+# URL that handles the media served from STATIC_ROOT / MEDIA_ROOT
+#     Example-1: "/static/" - "/media/" (default)
+#     Example-2: "http://other_domain.net/static/"
 #     Example-3: "http://static.your_domain.net/"
+#
+# Note: the URL mist have a trailing slash.
+#
 STATIC_URL = "/static/"
-
-
-# URL prefix for django admin media -- CSS, JavaScript and images. Saved in /django/contrib/admin/static/
-ADMIN_MEDIA_PREFIX = "/static/django/"
+MEDIA_URL = "/media/"
 
 
 # Changeable if needed (But should be off in productive usage!):

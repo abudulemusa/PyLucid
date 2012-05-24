@@ -165,16 +165,21 @@ class Command(BaseCommand):
         django_admin_path = os.path.abspath(os.path.dirname(admin.__file__))
         django_media_src = os.path.join(django_admin_path, "media")
         pylucid_media_src = os.path.join(settings.PYLUCID_BASE_PATH, "media", "PyLucid")
+        static_dest = os.path.join(self.destination, "static")
         media_dest = os.path.join(self.destination, "media")
 
         secret_key = ''.join(
-            [random.choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)]
+            [random.choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in xrange(50)]
         )
 
         patch_data = [
             (
                 'STATIC_ROOT = "/var/www/YourSite/static/"',
-                'STATIC_ROOT = "%s"' % media_dest
+                'STATIC_ROOT = "%s"' % static_dest
+            ),
+            (
+                'MEDIA_ROOT = "/var/www/YourSite/media/"',
+                'MEDIA_ROOT = "%s"' % media_dest
             ),
             (
                 'SECRET_KEY = "add-a-secret-key"',
@@ -192,43 +197,23 @@ class Command(BaseCommand):
         self.stdout.write(" -" * 39)
         self.stdout.write("\n")
 
-        self.stdout.write("media destination..: %s\n" % media_dest)
-
-        if os.path.exists(media_dest):
-            if self.verbosity:
-                self.stdout.write(self.style.SQL_COLTYPE("\ndestination %r exist.\n" % media_dest))
-        else:
-            os.makedirs(media_dest)
-            if self.verbosity:
-                self.stdout.write(self.style.SQL_COLTYPE("\ndestination %r created.\n" % media_dest))
-
-        self.stdout.write(
-            "\nYou can copy or symlink the needed media files.\n"
-            "We prefer to symlink the files, because they can be easy updated via VCS.\n"
-            "But this didn't work if Apache doesn't follow symlinks!\n"
-        )
-        while True:
-            input = raw_input(self.style.NOTICE("Copy or symlink media files (c/s) ?"))
-            if input.lower() == "c":
-                if self.verbosity:
-                    self.stdout.write("\ncopy media files...")
-                function = shutil.copytree
-                break
-            elif input.lower() == "s":
-                if self.verbosity:
-                    self.stdout.write("\nsymlink media files...")
-                function = os.symlink
-                break
-
-        self._setup_media(function, django_media_src, os.path.join(media_dest, "django"))
-        self._setup_media(function, pylucid_media_src, os.path.join(media_dest, "PyLucid"))
-
+        self.create_dir("static files directory", static_dest)
+        self.create_dir("media files directory", media_dest)
 
         self.stdout.write("\n")
         self.stdout.write(" -" * 39)
         self.stdout.write("\n")
 
-
         self.stdout.write("PyLucid page instance created in:\n%s\n" % self.destination)
         self.stdout.write("Please edit the files for your needs ;)\n")
 
+    def create_dir(self, info, path):
+        self.stdout.write("%s...: %s\n" % path)
+
+        if os.path.exists(path):
+            if self.verbosity:
+                self.stdout.write(self.style.SQL_COLTYPE("\ndestination %r exist.\n" % path))
+        else:
+            os.makedirs(path)
+            if self.verbosity:
+                self.stdout.write(self.style.SQL_COLTYPE("\ndestination %r created.\n" % path))

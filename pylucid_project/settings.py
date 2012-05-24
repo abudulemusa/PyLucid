@@ -299,34 +299,21 @@ AUTH_PROFILE_MODULE = "pylucid.UserProfile"
 
 #_____________________________________________________________________________
 # STATIC FILES
-# http://www.djangoproject.com/documentation/static_files/
+#
+# must be set in local_settings.py
+# would be checked at the end of this file
+#
+STATIC_ROOT = None
+STATIC_URL = None
+MEDIA_ROOT = None
+MEDIA_URL = None
 
-# Note: Every URL/path...
-# ...must be a absolute path.
-# ...must have a trailing slash.
-
-# Absolute _local_filesystem_path_ to the directory that holds media.
-#     Example-1: "./static/" (default)
-#     Example-2: "/home/foo/htdocs/static/"
-STATIC_ROOT = "./static/"#os.path.join(PYLUCID_BASE_PATH, "media") + "/"
 # https://docs.djangoproject.com/en/1.4/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = ()
 
 # Set base path for include plugin: 
 # http://www.pylucid.org/permalink/381/about-the-include-plugin
 PYLUCID_INCLUDE_BASEPATH = None
-
-# URL that handles the static media served from STATIC_ROOT.
-#     Example-1: "/static/" (default)
-#     Examlpe-2: "http://other_domain.net/static/"
-#     Example-3: "http://media.your_domain.net/"
-STATIC_URL = "/static/"
-
-# URL prefix for admin media -- CSS, JavaScript and images.
-#     Examples-1: "/django/contrib/admin/static/" (default)
-#     Examples-2: "http://other_domain.net/static/django/"
-#     Examples-3: "http://django.media.your_domain.net/"
-ADMIN_MEDIA_PREFIX = "/django/contrib/admin/static/"
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -422,6 +409,7 @@ CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 48
 
 #_______________________________________________________________________________
 
+SECRET_KEY = None
 if "create_instance" in sys.argv:
     # FIXME: If we not set a key here, the user can't execute the management command
     # for creating a new page instance :(
@@ -433,6 +421,7 @@ try:
     from local_settings import *
 except ImportError, err:
     if "create_instance" in sys.argv:
+        # There is no local_settings.py, yet.
         pass
     elif str(err) == "No module named local_settings":
         msg = (
@@ -445,9 +434,50 @@ except ImportError, err:
     else:
         raise
 
-if DEBUG or RUN_WITH_DEV_SERVER:
-    from django.core.exceptions import ImproperlyConfigured
-    for dir in STATICFILES_DIRS:
-        if not os.path.isdir(dir):
-            msg = "Direcotry in STATICFILES_DIRS doesn't exist: %r" % dir
-            raise ImproperlyConfigured(msg)
+if not "create_instance" in sys.argv:
+    if DEBUG or RUN_WITH_DEV_SERVER:
+        # Check all STATICFILES_DIRS
+        from django.core.exceptions import ImproperlyConfigured
+        for dir in STATICFILES_DIRS:
+            if not os.path.isdir(dir):
+                msg = "Directory in STATICFILES_DIRS doesn't exist: %r" % dir
+                raise ImproperlyConfigured(msg)
+
+    #__________________________________________________________________________
+    # Check STATIC_* and MEDIA_*
+
+    def _check_if_set(info, value):
+        if not value:
+            raise ImproperlyConfigured("Error: %s must be set in local_settings.py !" % info)
+
+    def _check_path(info, path):
+        _check_if_set(info, path)
+        if not os.path.exists(path):
+            raise ImproperlyConfigured("Error: %s %r doesn't exists!" % (info, path))
+
+    _check_path("STATIC_ROOT", STATIC_ROOT)
+    _check_path("MEDIA_ROOT", MEDIA_ROOT)
+
+    _check_if_set("STATIC_URL", STATIC_URL)
+    _check_if_set("MEDIA_URL", MEDIA_URL)
+
+    del(_check_path)
+    del(_check_if_set)
+
+    #__________________________________________________________________________
+    # expand SLUG_BLACKLIST
+
+    SLUG_BLACKLIST = list(SLUG_BLACKLIST)
+
+    if "." not in STATIC_URL:
+        # URL is not a other domain / sub domain
+        SLUG_BLACKLIST.append(STATIC_URL.strip("/").split("/", 1)[0])
+
+    if "." not in MEDIA_URL:
+        SLUG_BLACKLIST.append(MEDIA_URL.strip("/").split("/", 1)[0])
+
+    if DEBUG and RUN_WITH_DEV_SERVER:
+        print "SLUG_BLACKLIST:", SLUG_BLACKLIST
+
+    SLUG_BLACKLIST = tuple([item.lower() for item in SLUG_BLACKLIST])
+
