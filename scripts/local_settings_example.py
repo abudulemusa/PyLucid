@@ -20,7 +20,7 @@ STATIC_ROOT = "/var/www/YourSite/static/"
 # URL that handles the media served from STATIC_ROOT.
 #     Example-1: "/static/" (default)
 #     Examlpe-2: "http://other_domain.net/static/"
-#     Example-3: "http://media.your_domain.net/"
+#     Example-3: "http://static.your_domain.net/"
 STATIC_URL = "/static/"
 
 

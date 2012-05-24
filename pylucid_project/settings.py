@@ -390,7 +390,7 @@ USE_I18N = True
 # dbtemplates settings
 # http://packages.python.org/django-dbtemplates/overview.html#settings
 
-# Use django-reversion ?
+# dbtemplate should used django-reversion
 DBTEMPLATES_USE_REVERSION = True
 
 #_______________________________________________________________________________
