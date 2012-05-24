@@ -5,47 +5,37 @@
 
 {% block extrahead %}{{ block.super }}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrahead block START -->{% endif %}
-{% if Django_media_prefix and PyLucid_media_url %}
-	{% compress js %}
-	<script type="text/javascript">
-	    var PyLucid_media_url="{{ STATIC_URL }}PyLucid/";
-	    var markup_help_url="{% url PageAdmin-markup_help %}";
-	</script>
-	<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');" ></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}PyLucid/pylucid_js_tools.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>
-	<script type="text/javascript" src="{{ STATIC_URL }}PyLucid/codemirror/codemirror_min.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}PyLucid/jwysiwyg/jquery.wysiwyg.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>
-	{% if debug %}
-	   <script type="text/javascript">var debug=true;log("debug is on");</script>
-	{% else %}
-	   <script type="text/javascript">var debug=false;</script>
-	{% endif %}
-	{% endcompress %}
-	{% include "admin_menu/includes/superfish_extrahead.html" %}
-{% else %}{# Django_media_prefix and/or PyLucid_media_url doesn't exist in e.g. 500 error #}
-    <!-- Error: Can't include PyLucid JS files{% if debug %}, because Django_media_prefix and/or PyLucid_media_url is not defined!{% endif %} -->
+{% compress js %}
+<script type="text/javascript">
+    var PyLucid_media_url="{{ STATIC_URL }}PyLucid/";
+    var markup_help_url="{% url PageAdmin-markup_help %}";
+</script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');" ></script>
+<script type="text/javascript" src="{{ STATIC_URL }}PyLucid/pylucid_js_tools.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}PyLucid/codemirror/codemirror_min.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}PyLucid/jwysiwyg/jquery.wysiwyg.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>
+{% if debug %}
+   <script type="text/javascript">var debug=true;log("debug is on");</script>
+{% else %}
+   <script type="text/javascript">var debug=false;</script>
 {% endif %}
+{% endcompress %}
+{% include "admin_menu/includes/superfish_extrahead.html" %}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrahead block END -->{% endif %}
 {% endblock extrahead %}
 
 
 {% block extrastyle %}{% compress css %}{{ block.super }}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrastyle block START -->{% endif %}
-{% if PyLucid_media_url %}{# stylesheets for all Django admin views #}
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/jwysiwyg/jquery.wysiwyg.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
-	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/pylucid_admin.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
-{% else %}{# PyLucid_media_url doesn't exist in e.g. 500 error #}
-    <!-- Error: Can't include PyLucid CSS files{% if debug %}, because PyLucid_media_url is not defined!{% endif %} -->
-{% endif %}
-{% if pygments_css %}
-<link rel="stylesheet" type="text/css" href="{{ pygments_css }}" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
-{% endif %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/jwysiwyg/jquery.wysiwyg.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/pylucid_admin.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
+{% lucidTag extrahead filepath="pygments.css" %}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrastyle block END -->{% endif %}
 {% endcompress %}
 {% endblock extrastyle %}
 
 
-{% block branding %}<a name="top" /><h1 class="admin_headline">PyLucid</h1>
+{% block branding %}<h1 class="admin_headline" id="top">PyLucid</h1>
 <!-- page_messages -->
 {% endblock %}
 

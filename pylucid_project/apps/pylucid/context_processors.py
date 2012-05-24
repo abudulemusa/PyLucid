@@ -83,9 +83,6 @@ def pylucid(request):
             "current_site": Site.objects.get_current(),
             "sites": Site.objects.all(),
 
-            "PyLucid_media_url": settings.STATIC_URL + settings.PYLUCID.PYLUCID_MEDIA_DIR + "/",
-            "Django_media_prefix": settings.ADMIN_MEDIA_PREFIX,
-
             "debug": settings.DEBUG,
 
             "PYLUCID": request.PYLUCID,
