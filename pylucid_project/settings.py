@@ -333,10 +333,9 @@ LOGIN_REDIRECT_URL = "/%s/" % ADMIN_URL_PREFIX
 LOGIN_URL = "/%s/" % ADMIN_URL_PREFIX
 LOGOUT_URL = "/?%s" % PYLUCID.AUTH_LOGOUT_GET_VIEW
 
-
-# TODO: must be used ;)
+# Blacklist of PageTree slugs that are not useable.
+# Would be extendet at the end of this file!
 SLUG_BLACKLIST = (
-    STATIC_URL.strip("/").split("/", 1)[0],
     ADMIN_URL_PREFIX, PYLUCID_ADMIN_URL_PREFIX, PYLUCID.HEAD_FILES_URL_PREFIX,
 )
 
