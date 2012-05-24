@@ -33,7 +33,7 @@ jQuery(document).ready(function($) {
     }
 
     if (typeof sha_hexdigest === 'undefined') {
-        msg = "Error:\nWrong shared_sha_tools.js loaded! Please update your media files\n(sha_hexdigest not defined)";
+        msg = "Error:\nWrong shared_sha_tools.js loaded! Please update your static files\n(sha_hexdigest not defined)";
         alert(msg);
         $("#page_content").html("<"+"strong>" + msg + "<"+"/strong>");
         return false;
@@ -71,7 +71,7 @@ jQuery(document).ready(function($) {
 
             if (username.length<2) {
                 log("username to short, current len:" + username.length);
-                page_msg_error("{% trans 'Username is too short.' %}");
+                page_msg_error(gettext("Username is too short."));
                 $("#id_username").focus();
                 return false;
             }
@@ -81,17 +81,17 @@ jQuery(document).ready(function($) {
 
             if (password.length<8) {
                 log("password to short, current len:" + password.length);
-                page_msg_error("{% trans 'Password is too short. It must be at least eight characters long.' %}");
+                page_msg_error(gettext("Password is too short. It must be at least eight characters long."));
                 $("#id_password").focus();
                 return false;
             }
             if (is_only_ascii(password) != true) {
-                page_msg_error("{% trans 'Only ASCII letters in password allowed!' %}");
+                page_msg_error(gettext("Only ASCII letters in password allowed!"));
                 return false;
             }
 
             if (salt=="") {
-                page_msg_info("{% trans 'Get the hash salt value from server...' %}");
+                page_msg_info(gettext("Get the hash salt value from server..."));
                 var post_data = {
                     "username": username
                 };
@@ -121,7 +121,7 @@ jQuery(document).ready(function($) {
             shapass = sha_hexdigest(salt + password);
             if (shapass == false) { return false; }
             if (shapass.length!=HASH_LEN) {
-                alert("Internal error: hex_sha salt error! shapass length:" + shapass.length);
+                alert(gettext("Internal error: hex_sha salt error! shapass length:") + shapass.length);
                 return false;
             }
 
@@ -154,7 +154,7 @@ jQuery(document).ready(function($) {
                 "username": username, "sha_a2": sha_a2, "sha_b": sha_b
             }
             log("auth user, send POST:" + $.param(post_data));
-            page_msg_info("{% trans 'Send SHA-1 values to the server...' %}");
+            page_msg_info(gettext("Send SHA-1 values to the server..."));
             response = $.ajax({
                 async: false,
                 type: "POST",
@@ -170,7 +170,7 @@ jQuery(document).ready(function($) {
             log("responseText:" + msg);
             if (msg=="OK") {
                  // login was ok
-                 page_msg_success("Login ok, loading...");
+                 page_msg_success(gettext("Login ok, loading..."));
                  window.location.href = next_url;
                  return false;
             }

@@ -14,6 +14,7 @@
 </style>
 {% endcompress %}
 
+<script type="text/javascript" src="{% url django.views.i18n.javascript_catalog packages="auth" %}"></script>
 {% compress js %}
 <script type="text/javascript" src="{{ STATIC_URL }}PyLucid/sha.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}PyLucid/shared_sha_tools.js" onerror="JavaScript:alert('Error loading file ['+this.src+'] !');"></script>

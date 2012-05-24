@@ -35,6 +35,9 @@ urlpatterns = patterns('',
     # move it somewhere?
     url(r'^comments/', include('django.contrib.comments.urls')),
 
+    # https://docs.djangoproject.com/en/1.4/topics/i18n/translation/#module-django.views.i18n
+    url(r'^jsi18n/(?P<packages>\S+?)/$', 'django.views.i18n.javascript_catalog'),
+
     #_____________________________________
     # DJANGO ADMIN PANEL
     url(r'^%s/' % settings.ADMIN_URL_PREFIX, include(admin.site.urls)),
