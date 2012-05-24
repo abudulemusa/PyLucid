@@ -340,6 +340,9 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
+# Enable django-compressor even if DEBUG is on:
+COMPRESS_ENABLED = True
+
 
 ADMIN_URL_PREFIX = 'admin'
 PYLUCID_ADMIN_URL_PREFIX = 'pylucid_admin'
