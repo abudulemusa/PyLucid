@@ -433,26 +433,31 @@ except ImportError, err:
     else:
         raise
 
+def _error(msg):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(msg)
+
 if not "create_instance" in sys.argv:
+    if SECRET_KEY in (None, ""):
+        _error("You must set a SECRET_KEY in your local_settings.py!")
+
     if DEBUG or RUN_WITH_DEV_SERVER:
         # Check all STATICFILES_DIRS
-        from django.core.exceptions import ImproperlyConfigured
         for dir in STATICFILES_DIRS:
             if not os.path.isdir(dir):
-                msg = "Directory in STATICFILES_DIRS doesn't exist: %r" % dir
-                raise ImproperlyConfigured(msg)
+                _error("Directory in STATICFILES_DIRS doesn't exist: %r" % dir)
 
     #__________________________________________________________________________
     # Check STATIC_* and MEDIA_*
 
     def _check_if_set(info, value):
         if not value:
-            raise ImproperlyConfigured("Error: %s must be set in local_settings.py !" % info)
+            _error("%s must be set in local_settings.py !" % info)
 
     def _check_path(info, path):
         _check_if_set(info, path)
         if not os.path.exists(path):
-            raise ImproperlyConfigured("Error: %s %r doesn't exists!" % (info, path))
+            _error("%s %r doesn't exists!" % (info, path))
 
     _check_path("STATIC_ROOT", STATIC_ROOT)
     _check_path("MEDIA_ROOT", MEDIA_ROOT)
@@ -477,3 +482,4 @@ if not "create_instance" in sys.argv:
 
     SLUG_BLACKLIST = tuple([item.lower() for item in SLUG_BLACKLIST])
 
+del(_error)
