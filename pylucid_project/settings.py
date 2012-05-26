@@ -475,8 +475,5 @@ if not "create_instance" in sys.argv:
     if "." not in MEDIA_URL:
         SLUG_BLACKLIST.append(MEDIA_URL.strip("/").split("/", 1)[0])
 
-    if DEBUG and RUN_WITH_DEV_SERVER:
-        print "SLUG_BLACKLIST:", SLUG_BLACKLIST
-
     SLUG_BLACKLIST = tuple([item.lower() for item in SLUG_BLACKLIST])
 
