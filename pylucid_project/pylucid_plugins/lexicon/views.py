@@ -61,15 +61,20 @@ def detail_view(request, term=None):
         messages.error(request, error_msg)
         return
 
-    queryset = LexiconEntry.on_site.filter(is_public=True)
-    queryset = queryset.filter(term=term)
-
-    entry, tried_languages = LexiconEntry.objects.get_by_prefered_language(request, queryset)
+    entry = None
+    tried_languages = []
+    try:
+        queryset = LexiconEntry.on_site.filter(is_public=True)
+        queryset = queryset.filter(term=term)
+        entry, tried_languages = LexiconEntry.objects.get_by_prefered_language(request, queryset)
+    except LexiconEntry.DoesNotExist, err:
+        pass
 
     if entry is None:
         if settings.DEBUG or request.user.is_staff or settings.PYLUCID.I18N_DEBUG:
             error_msg += " (term: %r, tried languages: %s)" % (term, ", ".join([l.code for l in tried_languages]))
         messages.error(request, error_msg)
+        # FIXME: Should send response code should be 404 !
         return summary(request)
 
     new_url = i18n.assert_language(request, entry.language, check_url_language=True)
