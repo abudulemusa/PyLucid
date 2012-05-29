@@ -97,7 +97,10 @@ class BaseModelManager(models.Manager):
 
         if item is None:
             # Fallback and used the first found item
-            item = queryset[0]
+            try:
+                item = queryset[0]
+            except IndexError, err:
+                raise self.model.DoesNotExist(err)
 
         if show_lang_errors:
             current_language = request.PYLUCID.current_language
