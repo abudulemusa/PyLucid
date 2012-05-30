@@ -80,7 +80,7 @@ SQL_DEBUG = False
 # Should allways be False. It's only for developing! 
 PYLUCID_OBJECTS_DEBUG = False
 
-# We must set a defaul DB settings here, otherwise managment commands doesn't work.
+# We must set a default DB settings here, otherwise management commands doesn't work.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
