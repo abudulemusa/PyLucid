@@ -256,24 +256,22 @@ def detail_view(request, year, month, day, slug):
         "slug":slug,
     }
     current_language = request.PYLUCID.current_language
-    content_entry = None
-    tried_languages = None
     try:
         queryset = queryset.filter(**filter_kwargs)
-        content_entry, tried_languages = BlogEntryContent.objects.get_by_prefered_language(request, queryset, show_lang_errors=False)
+        content_entry, tried_languages = BlogEntryContent.objects.get_by_prefered_language(
+            request, queryset, show_lang_errors=False
+        )
     except BlogEntryContent.DoesNotExist, err:
         # TODO: Try to find a entry in other language, if not exist: redirect to day_archive() ?
         # It's possible that the user comes from a external link.
         msg = _("Entry for this url doesn't exist.")
         if settings.DEBUG or request.user.is_superuser:
-            msg += " Filter kwargs: %r" % repr(filter_kwargs)
-            if tried_languages:
-                msg += " - Not found in these languages: %s - error: %s" % ",".join(tried_languages)
-            msg += " - Error: %s" % err
-        messages.error(request, msg)
-        url = urlresolvers.reverse("Blog-summary")
-        # FIXME: Should send response code should be 404 !
-        return HttpResponseRedirect(url)
+            msg += " Filter kwargs: %r - Error: %s" % (repr(filter_kwargs), err)
+
+        raise Http404(msg)
+
+    if tried_languages and (settings.DEBUG or request.user.is_superuser):
+        messages.debug(request, "Not found in these languages: %s" % ",".join(tried_languages))
 
     # Add link to the breadcrumbs ;)
     _add_breadcrumb(request, content_entry.headline, _("Article '%s'") % content_entry.headline)
