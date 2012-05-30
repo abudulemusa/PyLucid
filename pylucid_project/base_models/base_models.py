@@ -80,9 +80,9 @@ class BaseModelManager(models.Manager):
     def get_by_prefered_language(self, request, queryset, show_lang_errors=False):
         """
         return a item from queryset in this way:
-         - try to get in current language
-         - if not exist: try to get in system default language
-         - if not exist: use the first found item
+        - try to get in language by client prefered order
+        - if not exist: try to get in system default language
+        - if not exist: use the first found item
         """
         item = None
         tried_languages = []
