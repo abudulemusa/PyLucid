@@ -209,7 +209,7 @@ def assert_language(request, language, save_get_parameter=False, check_url_langu
     if check_url_language:
         url_language = get_url_language(request)
         if url_language != language:
-            # The url contins the wrong language code -> redirect to the right one
+            # The url contains the wrong language code -> redirect to the right one
             new_url = change_url(request, language.code, save_get_parameter)
 
     if new_url:

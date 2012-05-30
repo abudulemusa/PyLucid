@@ -71,7 +71,7 @@ def detail_view(request, term=None):
         pass
 
     if entry is None:
-        # Entry not found -> Display summay with error message as 404 page
+        # Entry not found -> Display summary with error message as 404 page
         if settings.DEBUG or request.user.is_staff or settings.PYLUCID.I18N_DEBUG:
             error_msg += " (term: %r, tried languages: %s)" % (term, ", ".join([l.code for l in tried_languages]))
         messages.error(request, error_msg)
