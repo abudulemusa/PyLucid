@@ -71,11 +71,13 @@ def detail_view(request, term=None):
         pass
 
     if entry is None:
+        # Entry not found -> Display summay with error message as 404 page
         if settings.DEBUG or request.user.is_staff or settings.PYLUCID.I18N_DEBUG:
             error_msg += " (term: %r, tried languages: %s)" % (term, ", ".join([l.code for l in tried_languages]))
         messages.error(request, error_msg)
-        # FIXME: Should send response code should be 404 !
-        return summary(request)
+        response = summary(request)
+        response.status_code = 404 # Send as 404 page, so that search engines doesn't index this. 
+        return response
 
     new_url = i18n.assert_language(request, entry.language, check_url_language=True)
     if new_url:
