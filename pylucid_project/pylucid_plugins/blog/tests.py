@@ -9,21 +9,41 @@
         - PyLucid initial data contains english and german pages.
         - There exist only "PyLucid CMS" blog entry in english and german
     
-    :copyleft: 2010-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2010-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """
 
+
 import os
+import sys
 import datetime
-from django.core.exceptions import SuspiciousOperation
+
 
 if __name__ == "__main__":
-    # run all unittest directly
-    os.environ['DJANGO_SETTINGS_MODULE'] = "pylucid_project.settings"
+    # Run all unittest directly
+
+    tests = __file__
+#    tests = "pylucid_plugins.blog.tests.BlogPluginCsrfTest"
+#    tests = "pylucid_plugins.blog.tests.BlogPluginAnonymousTest"
+#    tests = "pylucid_plugins.blog.tests.BlogPluginTagsTest"
+#    tests = "pylucid_plugins.blog.tests.BlogLanguageFilterTest"
+#    tests = "pylucid_plugins.blog.tests.BlogPluginTest"
+#    tests = "pylucid_plugins.blog.tests.BlogPluginTest.test_create_csrf_check"
+#    tests = "pylucid_plugins.blog.tests.BlogPluginTest.test_creole_markup"
+#    tests = "pylucid_plugins.blog.tests.BlogPluginArticleTest"
+
+    from pylucid_project.tests import run_test_directly
+    run_test_directly(tests,
+        verbosity=2,
+        failfast=True
+    )
+    sys.exit()
+
 
 from django.conf import settings
 from django.contrib.messages import constants as message_constants
 from django.core.cache import cache
+from django.core.exceptions import SuspiciousOperation
 from django.core.urlresolvers import reverse
 from django.test.client import Client
 
@@ -834,21 +854,4 @@ class BlogPluginCsrfTest(BlogPluginTestCase):
 
 
 
-if __name__ == "__main__":
-    # Run all unittest directly
-    from django.core import management
 
-    tests = __file__
-#    tests = "pylucid_plugins.blog.tests.BlogPluginCsrfTest"
-#    tests = "pylucid_plugins.blog.tests.BlogPluginAnonymousTest"
-#    tests = "pylucid_plugins.blog.tests.BlogPluginTagsTest"
-#    tests = "pylucid_plugins.blog.tests.BlogLanguageFilterTest"
-#    tests = "pylucid_plugins.blog.tests.BlogPluginTest"
-#    tests = "pylucid_plugins.blog.tests.BlogPluginTest.test_create_csrf_check"
-#    tests = "pylucid_plugins.blog.tests.BlogPluginTest.test_creole_markup"
-#    tests = "pylucid_plugins.blog.tests.BlogPluginArticleTest"
-
-    management.call_command('test', tests,
-        verbosity=2,
-        failfast=True
-    )

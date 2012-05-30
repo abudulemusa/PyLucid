@@ -406,32 +406,64 @@ CACHES = {
 # Set default cache timeout (in seconds) to 2 Days (used in own PyLucid cache middleware, too) 
 CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 48
 
+
 #_______________________________________________________________________________
 
+# unittest running?
+_IN_UNITTESTS = "PYLUCID_UNITTESTS" in os.environ or "test" in sys.argv
+
+if _IN_UNITTESTS:
+    # For running unittests with sqlite and south:
+    # http://south.aeracode.org/wiki/Settings#SOUTH_TESTS_MIGRATE
+    SOUTH_TESTS_MIGRATE = False
+    
+    
 SECRET_KEY = None
 if "create_instance" in sys.argv:
     # FIXME: If we not set a key here, the user can't execute the management command
     # for creating a new page instance :(
     SECRET_KEY = "Only a temp secret key for 'create instance' management command"
 
+
 #_______________________________________________________________________________
+# overwrite values from the local settings
+
+LOCAL_SETTINGS_MODULE = os.environ.get("LOCAL_SETTINGS_MODULE", "local_settings") 
 
 try:
-    from local_settings import *
+    # from local_settings import *    
+    _local_settings = __import__(LOCAL_SETTINGS_MODULE, globals(), locals(), ["*"])
 except ImportError, err:
     if "create_instance" in sys.argv:
         # There is no local_settings.py, yet.
         pass
-    elif str(err) == "No module named local_settings":
+    elif str(err).startswith("No module named"):
         msg = (
-            "There is no local_settings.py file in '%s' !"
+            "There is no %s.py file in '%s' !"
             " (Original error was: %s)\n"
-        ) % (os.getcwd(), err)
+        ) % (LOCAL_SETTINGS_MODULE, os.getcwd(), err)
         sys.stderr.write(msg)
         #from django.core.exceptions import ImproperlyConfigured
         #raise ImproperlyConfigured(msg)
     else:
         raise
+    if _IN_UNITTESTS:
+        raise
+
+# Only for information:
+LOCAL_SETTINGS_MODULE_PATH = _local_settings.__file__
+
+# assimilate all local settings from modul, see: http://stackoverflow.com/a/2916810/746522
+for key in dir(_local_settings):
+    if not key.startswith("_"):
+        locals()[key] = getattr(_local_settings, key)
+        
+del(_local_settings)
+
+
+#_______________________________________________________________________________
+# check some settings
+
 
 def _error(msg):
     from django.core.exceptions import ImproperlyConfigured
