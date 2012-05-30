@@ -262,13 +262,18 @@ def detail_view(request, year, month, day, slug):
             request, queryset, show_lang_errors=False
         )
     except BlogEntryContent.DoesNotExist, err:
-        # TODO: Try to find a entry in other language, if not exist: redirect to day_archive() ?
-        # It's possible that the user comes from a external link.
-        msg = _("Entry for this url doesn't exist.")
+        # entry not found -> Display day archive with error messages as a 404 page
+        
+        # Create error message:
+        error_msg = _("Entry for this url doesn't exist.")
         if settings.DEBUG or request.user.is_superuser:
-            msg += " Filter kwargs: %r - Error: %s" % (repr(filter_kwargs), err)
-
-        raise Http404(msg)
+            error_msg += " Filter kwargs: %r - Error: %s" % (repr(filter_kwargs), err)
+        messages.error(request, error_msg)
+        
+        # response day archive
+        response = day_archive(request, year, month, day)
+        response.status_code = 404 # Send as 404 page, so that search engines doesn't index this.
+        return response
 
     if tried_languages and (settings.DEBUG or request.user.is_superuser):
         messages.debug(request, "Not found in these languages: %s" % ",".join(tried_languages))
