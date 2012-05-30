@@ -70,6 +70,16 @@ def detail_view(request, term=None):
     except LexiconEntry.DoesNotExist, err:
         pass
 
+    """
+    FIXME: This current solution is boring.
+    LexiconEntry.objects.get_by_prefered_language() with i18n.assert_language()
+    doesn't do a good job here.
+    e.g:
+        en + de exists as languages
+        user prefered de and called /en/foobar
+        foobar does only exist in en not in de
+    """
+
     if entry is None:
         # Entry not found -> Display summary with error message as 404 page
         if settings.DEBUG or request.user.is_staff or settings.PYLUCID.I18N_DEBUG:

@@ -217,10 +217,8 @@ def assert_language(request, language, save_get_parameter=False, check_url_langu
             # redirect, so the new selected language would be used
             return new_url
         else:
-            msg = "Error: Redirect loop! new url: %r" % new_url
-            if settings.DEBUG:
-                raise RuntimeError(msg)
-            if request.user.is_staff:
+            msg = "FIXME: Redirect loop! new url: %r" % new_url
+            if settings.DEBUG or request.user.is_staff:
                 messages.error(request, msg)
 
 
