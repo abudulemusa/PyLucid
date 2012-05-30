@@ -276,7 +276,9 @@ def detail_view(request, year, month, day, slug):
         return response
 
     if tried_languages and (settings.DEBUG or request.user.is_superuser):
-        messages.debug(request, "Not found in these languages: %s" % ",".join(tried_languages))
+        messages.debug(request,
+            "Blog entry not found in these languages: %s" % ",".join([l.code for l in tried_languages])
+        )
 
     # Add link to the breadcrumbs ;)
     _add_breadcrumb(request, content_entry.headline, _("Article '%s'") % content_entry.headline)
