@@ -442,12 +442,9 @@ except ImportError, err:
             "There is no %s.py file in '%s' !"
             " (Original error was: %s)\n"
         ) % (LOCAL_SETTINGS_MODULE, os.getcwd(), err)
-        sys.stderr.write(msg)
-        #from django.core.exceptions import ImproperlyConfigured
-        #raise ImproperlyConfigured(msg)
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(msg)
     else:
-        raise
-    if _IN_UNITTESTS:
         raise
 
 # Only for information:
