@@ -4,16 +4,11 @@
     PyLucid defaulttags
     ~~~~~~~~~~~~~~~~~~~
 
-    - register the PyLucid tags
-    - put the i18n tags into the builtins, so every internal pages/template can
-      use i18n without a explicit {% load i18n %}
+    register the PyLucid tags in templates with:
+      
+      {% load pylucid_defaults %}
 
-    start from:
-        ./PyLucid/tools/content_processors.py
-    with:
-        add_to_builtins('PyLucid.defaulttags')
-
-    :copyleft: 2007-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2007-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -51,10 +46,10 @@ register.filter(human_duration)
 #register.tag('get_available_languages', do_get_available_languages)
 #register.tag('get_current_language', do_get_current_language)
 #register.tag('get_current_language_bidi', do_get_current_language_bidi)
-register.tag('trans', do_translate)
-register.tag('blocktrans', do_block_translate)
+#register.tag('trans', do_translate)
+#register.tag('blocktrans', do_block_translate)
 
 # django-compressor
 # https://github.com/jezdez/django_compressor
-register.tag('compress', compress)
+#register.tag('compress', compress)
 
