@@ -33,32 +33,32 @@
 /* ----------------------------------------------------------------------------
    Highlight important models and grayed out non important ones in django admin
 ------------------------------------------------------------------------------- */
-.module th a[href="{% url admin:auth_permission_changelist %}"],
-.module th a[href="{% url admin:contenttypes_contenttype_changelist %}"],
-.module th a[href="{% url admin:pylucid_color_changelist %}"],
-.module th a[href="{% url admin:pylucid_userprofile_changelist %}"],
-.module th a[href="{% url admin:PyLucid_Update_blogcomment08_changelist %}"],
-.module th a[href="{% url admin:PyLucid_Update_blogentry_changelist %}"],
-.module th a[href="{% url admin:PyLucid_Update_blogtag_changelist %}"],
-.module th a[href="{% url admin:PyLucid_Update_js_logindata08_changelist %}"],
-.module th a[href="{% url admin:PyLucid_Update_page08_changelist %}"],
-.module th a[href="{% url admin:PyLucid_Update_style08_changelist %}"],
-.module th a[href="{% url admin:PyLucid_Update_template08_changelist %}"],
-.module th a[href="{% url admin:reversion_revision_changelist %}"],
-.module th a[href="{% url admin:reversion_version_changelist %}"],
-.module th a[href="{% url admin:tagging_taggeditem_changelist %}"],
-.module th a[href="{% url admin:tagging_tag_changelist %}"] {
+.module th a[href="{% url admin:index %}auth/permission/"],
+.module th a[href="{% url admin:index %}contenttypes/contenttype/"],
+.module th a[href="{% url admin:index %}pylucid/color/"],
+.module th a[href="{% url admin:index %}pylucid/userprofile/"],
+.module th a[href="{% url admin:index %}PyLucid_Update/blogcomment08/"],
+.module th a[href="{% url admin:index %}PyLucid_Update/blogentry/"],
+.module th a[href="{% url admin:index %}PyLucid_Update/blogtag/"],
+.module th a[href="{% url admin:index %}PyLucid_Update/js/logindata08/"],
+.module th a[href="{% url admin:index %}PyLucid_Update/page08/"],
+.module th a[href="{% url admin:index %}PyLucid_Update/style08/"],
+.module th a[href="{% url admin:index %}PyLucid_Update/template08/"],
+.module th a[href="{% url admin:index %}reversion/revision/"],
+.module th a[href="{% url admin:index %}reversion/version/"],
+.module th a[href="{% url admin:index %}tagging/taggeditem/"],
+.module th a[href="{% url admin:index %}tagging/tag/"] {
     color: #aaa;
 }
 
-.module th a[href="{% url admin:dbpreferences_preference_changelist %}"],
-.module th a[href="{% url admin:dbtemplates_template_changelist %}"],
-.module th a[href="{% url admin:pylucid_design_changelist %}"],
-.module th a[href="{% url admin:pylucid_logentry_changelist %}"],
-.module th a[href="{% url admin:redirect_redirectmodel_changelist %}"],
-.module th a[href="{% url admin:redirects_redirect_changelist %}"],
-.module th a[href="{% url admin:StreetMap_mapentry_changelist %}"],
-.module th a[href="{% url admin:django_processinfo_sitestatistics_changelist %}"] {
+.module th a[href="{% url admin:index %}dbpreferences/preference/"],
+.module th a[href="{% url admin:index %}dbtemplates/template/"],
+.module th a[href="{% url admin:index %}pylucid/design/"],
+.module th a[href="{% url admin:index %}pylucid/logentry/"],
+.module th a[href="{% url admin:index %}redirect/redirectmodel/"],
+.module th a[href="{% url admin:index %}redirects/redirect/"],
+.module th a[href="{% url admin:index %}StreetMap/mapentry/"],
+.module th a[href="{% url admin:index %}django/processinfo/sitestatistics/"] {
     background-color: #e8eff6;
     border-left: 5px solid #acc5e1;
     display: block;
