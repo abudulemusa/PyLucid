@@ -346,9 +346,6 @@ SITE_TEMPLATE_PREFIX = 'site_template'
 SITE_STYLE_PREFIX = 'site_stylesheet'
 
 
-# The PyLucid install instrucion page:
-INSTALL_HELP_URL = "http://pylucid.org/_goto/186/v0-9-testing/"
-
 # Django can't handling time zone very good.
 # The Django default TIME_ZONE is 'America/Chicago' (Central Standard Time Zone, (CST), UTC-6)
 # but this is not the best choice.
