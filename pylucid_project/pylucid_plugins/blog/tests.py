@@ -35,7 +35,8 @@ if __name__ == "__main__":
     from pylucid_project.tests import run_test_directly
     run_test_directly(tests,
         verbosity=2,
-        failfast=True
+#        failfast=True,
+        failfast=False,
     )
     sys.exit()
 
@@ -526,11 +527,78 @@ class BlogPluginTest(BlogPluginTestCase):
             "markup": MARKUP_CREOLE,
             "is_public": "on",
             "language": self.default_language.id,
+            "url_date": datetime.date.today(),
             "sites": settings.SITE_ID,
             "tags": "django-tagging, tag1, tag2",
         })
         blog_article_url = "http://testserver/en/blog/%s/the-blog-headline/" % TODAY_URL_PART
         self.assertRedirect(response, url=blog_article_url, status_code=302)
+
+    def test_unique_together_slug(self):
+        self.login_with_blog_add_permissions()
+        create_data = {
+            "content": "The **blog article content** in //creole// markup!",
+            "markup": MARKUP_CREOLE,
+            "is_public": "on",
+            "sites": settings.SITE_ID,
+            
+            # Same language + url_date and slug for both entries:
+            "language": self.default_language.id,
+            "url_date": datetime.date.today(),
+            "slug": "foobar",
+        }
+        # Create first entry:
+        create_data["headline"] = "unique headline one"
+        response = self.client.post(CREATE_URL, data=create_data)
+        blog_article_url = "http://testserver/en/blog/%s/foobar/" % TODAY_URL_PART
+        self.assertRedirect(response, url=blog_article_url, status_code=302)
+        
+        # Try to create the same entry, again:
+        create_data["headline"] = "unique headline two"
+        response = self.client.post(CREATE_URL, data=create_data)
+        self.assertResponse(response,
+            must_contain=(
+                "Create a new blog entry",
+                "Form errors", 
+                "Blog entry content with this Language, URL Date and Slug already exists.",
+            ),
+            must_not_contain=("Traceback", "field is required")
+        )
+        # Stay at create page:
+        self.assertEqual(response.request["PATH_INFO"], CREATE_URL)
+
+    def test_unique_together_headline(self):
+        self.login_with_blog_add_permissions()
+        create_data = {
+            "content": "The **blog article content** in //creole// markup!",
+            "markup": MARKUP_CREOLE,
+            "is_public": "on",
+            "sites": settings.SITE_ID,
+            
+            # Same language + url_date and headline for both entries:
+            "language": self.default_language.id,
+            "url_date": datetime.date.today(),
+            "headline": "always the same",
+        }
+        # Create first entry:
+        create_data["slug"] = "unique_slug_one"
+        response = self.client.post(CREATE_URL, data=create_data)
+        blog_article_url = "http://testserver/en/blog/%s/unique_slug_one/" % TODAY_URL_PART
+        self.assertRedirect(response, url=blog_article_url, status_code=302)
+        
+        # Try to create the same entry, again:
+        create_data["slug"] = "unique_slug_two"
+        response = self.client.post(CREATE_URL, data=create_data)
+        self.assertResponse(response,
+            must_contain=(
+                "Create a new blog entry",
+                "Form errors", 
+                "Blog entry content with this Language, URL Date and Headline already exists.",
+            ),
+            must_not_contain=("Traceback", "field is required")
+        )
+        # Stay at create page:
+        self.assertEqual(response.request["PATH_INFO"], CREATE_URL)
 
     def test_creole_markup(self):
         self.login_with_blog_add_permissions()
@@ -540,6 +608,7 @@ class BlogPluginTest(BlogPluginTestCase):
             "markup": MARKUP_CREOLE,
             "is_public": "on",
             "language": self.default_language.id,
+            "url_date": datetime.date.today(),
             "sites": settings.SITE_ID,
             "tags": "django-tagging, tag1, tag2",
         })
@@ -807,6 +876,7 @@ class BlogPluginCsrfTest(BlogPluginTestCase):
             "markup": MARKUP_CREOLE,
             "is_public": "on",
             "language": self.default_language.id,
+            "url_date": datetime.date.today(),
             "sites": settings.SITE_ID,
             "tags": "django-tagging, tag1, tag2",
         })
@@ -843,6 +913,7 @@ class BlogPluginCsrfTest(BlogPluginTestCase):
             "markup": MARKUP_CREOLE,
             "is_public": "on",
             "language": self.default_language.id,
+            "url_date": datetime.date.today(),
             "sites": settings.SITE_ID,
             "tags": "django-tagging, tag1, tag2",
             "csrfmiddlewaretoken": csrf_token
