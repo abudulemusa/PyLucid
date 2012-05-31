@@ -204,11 +204,13 @@ class Command(BaseCommand):
         self.stdout.write(" -" * 39)
         self.stdout.write("\n")
 
-        self.stdout.write("PyLucid page instance created in:\n%s\n" % self.destination)
-        self.stdout.write("Please edit the files for your needs ;)\n")
+        self.stdout.write("\nPyLucid page instance created in:\n\t%s\n" % self.destination)
+        self.stdout.write("\nPlease edit the files for your needs ;)\n")
+        self.stdout.write("\nInstruction for next Step can you find here:\n") 
+        self.stdout.write("http://www.pylucid.org/permalink/356/create-database-tables-and-insert-initial-data")
 
     def create_dir(self, info, path):
-        self.stdout.write("%s...: %s\n" % path)
+        self.stdout.write("%s...: %s\n" % (info, path))
 
         if os.path.exists(path):
             if self.verbosity:
