@@ -3,7 +3,7 @@
 
 # http://code.google.com/p/feedparser/
 # http://pypi.python.org/pypi/feedparser/
-feedparser>=5.0.1,<5.1
+feedparser>=5.1.2,<5.2
 
 # http://pygments.org/
 # http://pypi.python.org/pypi/Pygments
