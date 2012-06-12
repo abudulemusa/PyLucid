@@ -3,9 +3,8 @@
 
 {% block title %}PyLucid - {{ title }}{% endblock %}
 
-{% block extrahead %}{{ block.super }}
+{% block extrahead %}{% compress js %}{{ block.super }}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrahead block START -->{% endif %}
-{% compress js %}
 <script type="text/javascript">
     var PyLucid_media_url="{{ STATIC_URL }}PyLucid/";
     var markup_help_url="{% url PageAdmin-markup_help %}";
@@ -19,14 +18,14 @@
 {% else %}
    <script type="text/javascript">var debug=false;</script>
 {% endif %}
-{% endcompress %}
 {% include "admin_menu/includes/superfish_extrahead.html" %}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrahead block END -->{% endif %}
+{% endcompress %}
 {% endblock extrahead %}
-
 
 {% block extrastyle %}{% compress css %}{{ block.super }}
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrastyle block START -->{% endif %}
+{% include "admin_menu/includes/superfish_extrastyle.html" %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/jwysiwyg/jquery.wysiwyg.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}PyLucid/pylucid_admin.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
 <style type="text/css">
@@ -76,7 +75,6 @@
 {% if debug %}<!-- ./apps/pylucid/templates/admin/base_site.html extrastyle block END -->{% endif %}
 {% endcompress %}
 {% endblock extrastyle %}
-
 
 {% block branding %}<h1 class="admin_headline" id="top">PyLucid</h1>
 <!-- page_messages -->

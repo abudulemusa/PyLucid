@@ -1,0 +1,16 @@
+{% if debug %}<!-- pylucid plugin ./admin_menu/includes/superfish_extrastyle.html START -->{% endif %}
+<link rel="stylesheet" type="text/css" media="screen" href="{{ STATIC_URL }}PyLucid/superfish/superfish.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
+<link rel="stylesheet" type="text/css" media="screen" href="{{ STATIC_URL }}PyLucid/superfish/pylucid_superfish.css" onerror="JavaScript:alert('Error loading file ['+this.href+'] !');" />
+{# this must be here in the template and can't stored into the css file, because of the urls #}
+<style type="text/css">
+<!--
+/* setup superfish background urls */
+.sf-sub-indicator {
+    background: url('{{ STATIC_URL }}PyLucid/superfish/arrows-ffffff.png') no-repeat -10px -100px; /* 8-bit indexed alpha png. IE6 gets solid image only */
+}
+.sf-shadow ul {
+    background: url('{{ STATIC_URL }}PyLucid/superfish/shadow.png') no-repeat bottom right;
+}
+-->
+</style>
+{% if debug %}<!-- pylucid plugin ./admin_menu/includes/superfish_extrastyle.html END -->{% endif %}

@@ -8,12 +8,12 @@
     - put the i18n tags into the builtins, so every internal pages/template can
       use i18n without a explicit {% load i18n %}
 
-    start from:
-        ./PyLucid/tools/content_processors.py
-    with:
+    this template library would be added with:
         add_to_builtins('PyLucid.defaulttags')
+    in:
+        pylucid_project/urls.py
 
-    :copyleft: 2007-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2007-2012 by the PyLucid team,see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -24,7 +24,6 @@ from django.templatetags.i18n import do_translate, do_block_translate
 from compressor.templatetags.compress import compress
 
 from pylucid_project.apps.pylucid.defaulttags import lucidTag
-from pylucid_project.apps.pylucid.defaulttags import extraheadBlock
 from pylucid_project.apps.pylucid.defaulttags import sourcecode
 from pylucid_project.apps.pylucid.defaulttags import localtime
 from django_tools.template.filters import human_duration
@@ -36,7 +35,7 @@ from django_tools.template.filters import human_duration
 register = Library()
 
 register.tag(lucidTag.lucidTag)
-register.tag("extrahead", extraheadBlock.do_extrahead)
+
 register.tag("sourcecode", sourcecode.do_sourcecode)
 
 register.filter("to_utc", localtime.to_utc)

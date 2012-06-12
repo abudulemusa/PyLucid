@@ -61,6 +61,7 @@ class PyLucidRequestObjects(object):
         # pylucid.defaulttags.extraheadBlock - redirect {% extrahead %} block tag content
         # pylucid_plugin.extrahead.context_middleware - insert the data into the global page
         self.extrahead = extrahead.ExtraHead()
+        self.extrastyle = extrahead.ExtraStyle()
 
         # objects witch will be set later:
         #self.object2comment - Object to comment

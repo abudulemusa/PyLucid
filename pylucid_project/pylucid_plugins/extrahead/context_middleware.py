@@ -13,6 +13,8 @@
     PyLucid plugins should use {% extrahead %} block tag (pylucid.defaulttags.extraheadBlock)
     in plugin template for insert e.g. CSS/JS file links into html head.
 
+    TODO: Split in CSS / JS for feed django - compressor
+
     :copyleft: 2009-2011 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """

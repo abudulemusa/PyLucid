@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 
-{% block extrahead %}{{ block.super }}
-<!-- page_admin.translate extrahead block start -->
+{% block extrastyle %}{{ block.super }}
+<!-- page_admin.translate extrastyle block start -->
 <style type="text/css">
 .pylucid_form .dest_float {float: right;}
 .pylucid_form .source_float {float: left;}
@@ -56,6 +56,11 @@
     margin-left: 0px;
 }
 </style>
+<!-- page_admin.translate extrastyle block end -->
+{% endblock extrastyle %}
+
+{% block extrahead %}{{ block.super }}
+<!-- page_admin.translate extrahead block start -->
 <script type="text/javascript">
 <!--
 $(document).ready(function(){
