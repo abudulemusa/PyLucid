@@ -20,7 +20,7 @@ from pylucid_project.apps.pylucid.forms.utils import TagLanguageSitesFilter
 from pylucid_project.pylucid_plugins.blog.models import BlogEntryContent
 
 
-class BlogContentForm(forms.ModelForm):
+class BlogContentForm(TagLanguageSitesFilter, forms.ModelForm):
     """
     Like a normal model form. But it protects against overwriting newer content:
     * Save the last update time in a hidden field
@@ -38,6 +38,8 @@ class BlogContentForm(forms.ModelForm):
         * User A get the form back with a form error in a new checkbox field
     User A must activate the checkbox and saves the form again, to overwrite.
     """
+    sites_filter = "entry__sites__id__in" # for TagLanguageSitesFilter
+    
     last_update = forms.DateTimeField(
         widget = forms.widgets.HiddenInput
     )
@@ -80,7 +82,7 @@ class BlogForm(TagLanguageSitesFilter, forms.ModelForm):
     """
     Form for create/edit a blog entry.
     """
-    sites_filter = "entry__sites__id__in"
+    sites_filter = "entry__sites__id__in" # for TagLanguageSitesFilter
     sites = forms.MultipleChoiceField(
         # choices= Set in __init__, so the Queryset would not execute at startup
         help_text=_("On which site should this entry exists?")
@@ -89,6 +91,7 @@ class BlogForm(TagLanguageSitesFilter, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(BlogForm, self).__init__(*args, **kwargs)
         self.fields["sites"].choices = Site.objects.all().values_list("id", "name")
+        self.fields["sites"].initial = settings.SITE_ID
 
     class Meta:
         model = BlogEntryContent
