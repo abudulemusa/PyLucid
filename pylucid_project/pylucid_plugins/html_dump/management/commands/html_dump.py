@@ -76,10 +76,9 @@ class Command(BaseCommand):
         root_pagemetas = PageMeta.objects.filter(pagetree=root_pagetree)
         context = {"root_pagemetas": root_pagemetas}
         self.create_file_from_templates("/", "html_dump/index_page.html", context)
-        sys.exit()
 
         client = Client(HTML_DUMP=True)
-        page_tree_queryset = PageTree.on_site.all_accessible(user=anonymous_user, filter_showlinks=False)
+        page_tree_queryset = PageTree.objects.all_accessible(user=anonymous_user, filter_showlinks=False)
         page_meta_queryset = PageMeta.objects.filter(pagetree__in=page_tree_queryset)
         page_count = 0
         total_start_time = time.time()
