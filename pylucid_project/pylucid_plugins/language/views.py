@@ -35,9 +35,12 @@ def _can_reset():
     return pref_data["add_reset_link"] or settings.DEBUG or settings.PYLUCID.I18N_DEBUG
 
 
-@render_to("language/language_selector.html")
+@render_to()
 def lucidTag(request):
     """ insert language selector list into page """
+    current_language = request.PYLUCID.current_language
+    current_pagetree = request.PYLUCID.pagetree
+
     existing_languages = request.PYLUCID.languages[:]
     existing_languages.sort()
 
@@ -54,8 +57,7 @@ def lucidTag(request):
                 request.session[key] = True
         return
 
-    current_language = request.PYLUCID.current_language
-    current_pagetree = request.PYLUCID.pagetree
+
     absolute_url = current_pagetree.get_absolute_url()
     current_url = absolute_url.strip("/") # For {% url ... %}
 
@@ -65,7 +67,18 @@ def lucidTag(request):
         "existing_languages": existing_languages,
         "add_reset_link": _can_reset(),
         "reset_key": RESET_KEY,
+        "template_name": "language/language_selector.html",
     }
+
+    if "HTML_DUMP" in request.META:
+        # Request from html dump management command.
+        pagemetas = PageMeta.on_site.filter(pagetree=current_pagetree)
+        context.update({
+            "pagemetas": pagemetas,
+            "add_reset_link": False,
+            "template_name": "language/static_selector.html",
+        })
+
     return context
 
 

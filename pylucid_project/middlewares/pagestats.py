@@ -132,6 +132,11 @@ class PageStatsMiddleware(object):
             # No HTML Page -> do nothing
             return response
 
+        if "HTML_DUMP" in request.META:
+            # Request from html dump management command.
+            response = replace_content(response, TAG, u"")
+            return response
+
         try:
             start_time = self.start_time
         except AttributeError:

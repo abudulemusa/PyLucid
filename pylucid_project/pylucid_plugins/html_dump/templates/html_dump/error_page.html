@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ERROR</title>
+</head>
+<body>
+    <h1>Page error.</h1>
+    <p>We're sorry, but the requested page could not be found.</p>
+    {% if traceback %}<pre>{{ traceback }}</pre>{% endif %}
+    <a href="/" onclick="javascript: history.go(-1);return false;">&#xAB; back back</a>
+</body>
+</html>

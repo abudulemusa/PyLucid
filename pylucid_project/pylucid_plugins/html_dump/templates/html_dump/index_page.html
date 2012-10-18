@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>index</title>
+    <script>
+        var language = window.navigator.language || navigator.userLanguage;
+        var language = language.substring(0,2);
+        var pages=new Array();
+        {% for pagemeta in root_pagemetas %}
+        pages["{{ pagemeta.language.code }}"] = "{{ pagemeta.get_absolute_url }}";
+        {% endfor %}
+        alert(language+"--"+pages);
+    </script>
+</head>
+<body>
+    <h1>Page error.</h1>
+    
+    
+    
+    <p>We're sorry, but the requested page could not be found.</p>
+    <a href="/" onclick="javascript: history.go(-1);return false;">&#xAB; back back</a>
+</body>
+</html>

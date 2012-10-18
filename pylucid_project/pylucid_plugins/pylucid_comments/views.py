@@ -224,6 +224,10 @@ def http_get_view(request):
 
 
 def lucidTag(request):
+    if "HTML_DUMP" in request.META:
+        # Request from html dump management command.
+        return u""
+
     if (settings.DEBUG or request.user.is_superuser) and not settings.ADMINS:
         messages.info(request, "Please fill out settings.ADMINS!")
 

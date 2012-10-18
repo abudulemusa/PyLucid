@@ -103,6 +103,10 @@ def lucidTag(request):
     Create login/logout link
     example: {% lucidTag auth %}
     """
+    if "HTML_DUMP" in request.META:
+        # Request from html dump management command.
+        return u""
+
     context = {
         "honypot_url": "#top" # Don't use honypot
     }
