@@ -7,7 +7,7 @@
 
     Generate a list of the latest page updates.
 
-    :copyleft: 2007-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2007-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.p
 """
 
@@ -23,8 +23,9 @@ from pylucid_project.apps.pylucid.decorators import render_to
 from pylucid_project.utils.safe_obtain import safe_pref_get_integer
 from pylucid_project.apps.pylucid.models import Language, PluginPage
 
-from update_journal.models import UpdateJournal
-from update_journal.preference_forms import UpdateJournalPrefForm
+from .models import UpdateJournal
+from .preference_forms import UpdateJournalPrefForm
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
 
 def _get_queryset(request, count):
@@ -50,7 +51,7 @@ def _get_queryset(request, count):
     return queryset[:count]
 
 
-@render_to("update_journal/update_journal_table.html")
+@render_to()
 def lucidTag(request, count=10):
     try:
         count = int(count)
@@ -71,7 +72,8 @@ def lucidTag(request, count=10):
 
     context = {
         "update_list": queryset,
-        "select_feed_url": select_feed_url
+        "select_feed_url": select_feed_url,
+        "template_name": build_template_names(request, "update_journal/update_journal_table.html"),
     }
     return context
 

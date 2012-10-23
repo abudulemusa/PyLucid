@@ -14,7 +14,7 @@
     See also:
         http://www.pylucid.org/permalink/375/poll
 
-    :copyleft: 2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2011-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """
 
@@ -29,8 +29,9 @@ from django_tools.decorators import render_to
 from django_tools import limit_to_usergroups
 
 from pylucid_project.apps.pylucid.shortcuts import bad_request
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
-from poll.models import Poll, Choice, UserVotes, IPVotes
+from .models import Poll, Choice, UserVotes, IPVotes
 
 
 
@@ -138,12 +139,12 @@ def _get_poll_content(request, poll):
     why_cant_vote = _why_cant_vote(request, poll)
     if why_cant_vote == False:
         # Use can vote -> display vote form
-        context["template_name"] = "poll/vote_form.html"
+        context["template_name"] = build_template_names(request, "poll/vote_form.html")
     else:
         # Use can't vote -> display poll results with a message, why he can't vote
         context.update({
             "poll_message": why_cant_vote,
-            "template_name": "poll/results.html",
+            "template_name": build_template_names(request, "poll/results.html"),
         })
 
     return context

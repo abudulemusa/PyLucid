@@ -21,6 +21,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.syndication.views import Feed
 from django.core import urlresolvers
+from django.core.urlresolvers import reverse
 from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect, \
     Http404
 from django.utils.feedgenerator import Rss201rev2Feed, Atom1Feed
@@ -29,18 +30,18 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.generic.date_based import archive_year, archive_month, \
     archive_day
 
+# from django-tagging
+from tagging.models import Tag, TaggedItem
+
 from pylucid_project.apps.pylucid.decorators import render_to
 from pylucid_project.apps.pylucid.system import i18n
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 from pylucid_project.middlewares.pylucid_objects import SuspiciousOperation404
 from pylucid_project.utils.safe_obtain import safe_pref_get_integer
 
-from blog.preference_forms import get_preferences
-from blog.models import BlogEntry, BlogEntryContent
-from blog.preference_forms import BlogPrefForm
-
-# from django-tagging
-from tagging.models import Tag, TaggedItem
-from django.core.urlresolvers import reverse
+from .preference_forms import get_preferences
+from .models import BlogEntry, BlogEntryContent
+from .preference_forms import BlogPrefForm
 
 
 def _add_breadcrumb(request, *args, **kwargs):
@@ -146,7 +147,7 @@ FEED_FILENAMES = (AtomFeed.filename, RssFeed.filename)
 
 
 
-@render_to("blog/summary.html")
+@render_to()
 def summary(request):
     """
     Display summary list with all blog entries.
@@ -178,11 +179,12 @@ def summary(request):
         "CSS_PLUGIN_CLASS_NAME": settings.PYLUCID.CSS_PLUGIN_CLASS_NAME,
         "filenames": FEED_FILENAMES,
         "page_robots": "noindex,follow",
+        "template_name": build_template_names(request, "blog/summary.html"),
     }
     return context
 
 
-@render_to("blog/summary.html")
+@render_to()
 def tag_view(request, tags):
     """
     Display summary list with blog entries filtered by the given tags.
@@ -236,12 +238,13 @@ def tag_view(request, tags):
         "tags": tags,
         "filenames": FEED_FILENAMES,
         "page_robots": "noindex,nofollow",
+        "template_name": build_template_names(request, "blog/summary.html"),
     }
     return context
 
 
 @csrf_protect
-@render_to("blog/detail_view.html")
+@render_to()
 def detail_view(request, year, month, day, slug):
     """
     Display one blog entry with a comment form.
@@ -263,13 +266,13 @@ def detail_view(request, year, month, day, slug):
         )
     except BlogEntryContent.DoesNotExist, err:
         # entry not found -> Display day archive with error messages as a 404 page
-        
+
         # Create error message:
         error_msg = _("Entry for this url doesn't exist.")
         if settings.DEBUG or request.user.is_superuser:
             error_msg += " Filter kwargs: %r - Error: %s" % (repr(filter_kwargs), err)
         messages.error(request, error_msg)
-        
+
         # response day archive
         response = day_archive(request, year, month, day)
         response.status_code = 404 # Send as 404 page, so that search engines doesn't index this.
@@ -302,6 +305,7 @@ def detail_view(request, year, month, day, slug):
         "tag_cloud": tag_cloud,
         "CSS_PLUGIN_CLASS_NAME": settings.PYLUCID.CSS_PLUGIN_CLASS_NAME,
         "page_permalink": permalink, # Change the permalink in the global page template
+        "template_name": build_template_names(request, "blog/detail_view.html"),
     }
     return context
 
@@ -444,13 +448,16 @@ def day_archive(request, year, month, day):
 #------------------------------------------------------------------------------
 
 
-@render_to("blog/select_feed.html")
+@render_to()
 def select_feed(request):
     """
     Display a list with existing feed filenames.
     TODO: Set http robots ==> "noindex,follow"
     """
-    context = {"filenames": FEED_FILENAMES}
+    context = {
+        "filenames": FEED_FILENAMES,
+        "template_name": build_template_names(request, "blog/select_feed.html"),
+    }
     return context
 
 

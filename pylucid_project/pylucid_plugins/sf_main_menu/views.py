@@ -4,7 +4,7 @@
     PyLucid superfish main menu
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2009-2010 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """
 
@@ -12,11 +12,12 @@
 from django.conf import settings
 from django.contrib import messages
 
-from pylucid_project.apps.pylucid.models import PageTree
 from pylucid_project.apps.pylucid.decorators import render_to
+from pylucid_project.apps.pylucid.models import PageTree
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
 
-@render_to("sf_main_menu/sf_main_menu.html")
+@render_to()
 def lucidTag(request, min=1, max=0):
     """ Create the superfish main menu """
     user = request.user
@@ -55,4 +56,8 @@ def lucidTag(request, min=1, max=0):
 
     #tree.debug()
 
-    return {"nodes": tree.get_first_nodes()}
+    context = {
+        "nodes": tree.get_first_nodes(),
+        "template_name": build_template_names(request, "sf_main_menu/sf_main_menu.html"),
+    }
+    return context

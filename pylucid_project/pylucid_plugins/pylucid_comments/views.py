@@ -34,11 +34,12 @@ from django_tools.cache.site_cache_middleware import delete_cache_item
 from django_tools.decorators import render_to
 from django_tools.utils.client_storage import ClientCookieStorageError, ClientCookieStorage
 
+from pylucid_project.apps.pylucid.decorators import check_request
 from pylucid_project.apps.pylucid.models import LogEntry
 from pylucid_project.apps.pylucid.shortcuts import bad_request
-from pylucid_project.apps.pylucid.decorators import check_request
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
-from pylucid_comments.preference_forms import PyLucidCommentsPrefForm
+from .preference_forms import PyLucidCommentsPrefForm
 
 
 
@@ -154,7 +155,7 @@ comment_was_posted.connect(comment_was_posted_handler)
 
 @ensure_csrf_cookie
 @check_request(APP_LABEL, "_get_form() error", must_post=False, must_ajax=True)
-@render_to("pylucid_comments/comment_form.html")
+@render_to()
 def _get_form(request):
     """ Send the comment form to via AJAX request """
     try:
@@ -183,7 +184,11 @@ def _get_form(request):
                 return bad_request(APP_LABEL, "error", "Wrong cookie data: %s" % err)
 
     form = comments.get_form()(target, initial=data)
-    return {"form":form}
+    context = {
+        "form":form,
+        "template_name": build_template_names(request, "pylucid_comments/comment_form.html"),
+    }
+    return context
 
 
 @csrf_protect

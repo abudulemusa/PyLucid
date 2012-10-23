@@ -6,14 +6,14 @@
 
     Generates a link list of all sub pages.
 
-    :copyleft: 2005-2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2005-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """
 
 
-
-from pylucid_project.apps.pylucid.models import PageTree, PageMeta, Language
 from pylucid_project.apps.pylucid.decorators import render_to
+from pylucid_project.apps.pylucid.models import PageTree, PageMeta, Language
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
 
 @render_to()
@@ -72,10 +72,12 @@ def lucidTag(request, use_title=False, template_name="sub_menu/sub_menu.html"):
     # sort by PageTree positions 
     sub_pages.sort(cmp=lambda x, y: cmp(x.pagetree.position, y.pagetree.position))
 
+    template_names = build_template_names(request, template_name)
+
     context = {
         "sub_pages": sub_pages,
         "use_title": use_title,
-        "template_name": template_name,
+        "template_name": template_names,
     }
     return context
 

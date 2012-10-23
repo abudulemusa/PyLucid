@@ -32,8 +32,9 @@ from pylucid_project.pylucid_plugins.auth.models import HonypotAuth, \
 from pylucid_project.utils import crypt
 
 # auth own stuff
-from forms import WrongUserError, UsernameForm, ShaLoginForm
-from preference_forms import AuthPreferencesForm
+from .forms import WrongUserError, UsernameForm, ShaLoginForm
+from .preference_forms import AuthPreferencesForm
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
 
 APP_LABEL = "pylucid_plugin.auth" # used for creating LogEntry entries
@@ -91,8 +92,8 @@ def login_honeypot(request):
         "form_url": request.path,
         "page_robots": "noindex,nofollow",
     }
-
-    response = render_to_response("auth/login_honeypot.html", context, context_instance=RequestContext(request))
+    template_names = build_template_names(request, "auth/login_honeypot.html")
+    response = render_to_response(template_names, context, context_instance=RequestContext(request))
     if faked_login_error:
         response.status_code = 401
     return response

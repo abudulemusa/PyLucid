@@ -4,18 +4,21 @@
     PyLucid StreetMap plugin
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2010 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2010-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """
+
 
 from django.conf import settings
 from django.contrib import messages
 from django.utils.translation import ugettext as _
 
 from pylucid_project.apps.pylucid.decorators import render_to
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
-from StreetMap.models import MapEntry
-from StreetMap.preference_forms import PreferencesForm
+from .models import MapEntry
+from .preference_forms import PreferencesForm
+
 
 @render_to()
 def lucidTag(request, name=None):
@@ -52,13 +55,17 @@ def lucidTag(request, name=None):
     pref_form = PreferencesForm()
     preferences = pref_form.get_preferences()
 
+    template_name = map_entry.get_template_name()
+    template_names = build_template_names(request, template_name)
+
     context = {
         "map":map_entry,
         "marker_lon": map_entry.marker_lon or 100000,
         "marker_lat": map_entry.marker_lat or 100000,
         "marker_html": map_entry.get_html(),
         "kmlurl": map_entry.kmlurl,
-        "template_name": map_entry.get_template_name(),
+        "template_name": template_names,
         "lang_code": request.PYLUCID.current_language.code,
+        #"google_maps_api_key": preferences["google_maps_api_key"]
     }
     return context

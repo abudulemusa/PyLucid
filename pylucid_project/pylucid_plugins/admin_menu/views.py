@@ -9,32 +9,21 @@
     superfish homepage:
         http://users.tpg.com.au/j_birch/plugins/superfish/
     
-    Last commit info:
-    ~~~~~~~~~
-    $LastChangedDate:$
-    $Rev:$
-    $Author: JensDiemer $
-    
-    :copyleft: 2009 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """
 
-from django.contrib import messages
-from django.conf import settings
-from django.core import urlresolvers
-from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
-from django.core.cache import cache
-from django.utils.safestring import mark_safe
+from django.template import RequestContext
 
-from pylucid_project.apps.pylucid.models import PageTree, PluginPage, Language
 from pylucid_project.apps.pylucid.decorators import render_to
-
+from pylucid_project.apps.pylucid.models import Language
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 from pylucid_project.apps.pylucid_admin.models import PyLucidAdminPage
 
 
-@render_to("admin_menu/admin_top_menu.html")#, debug=True)
+@render_to()#, debug=True)
 def lucidTag(request):
     """
     Render the pylucid admin menu, if the user is authenticated.
@@ -52,6 +41,7 @@ def lucidTag(request):
         "edit_page_link": "?page_admin=inline_edit",
         "new_page_link": reverse("admin:pylucid_pagecontent_add"),
         "add_translate": lang_count > 1,
+        "template_name": build_template_names(request, "admin_menu/admin_top_menu.html"),
     }
     return context
 
@@ -63,6 +53,7 @@ def panel_extras(request, template="admin_menu/admin_menu_items.html"):
     
     Usage in template with:
         {% lucidTag admin_menu.panel_extras %}
+        {% lucidTag admin_menu.panel_extras template="own/template.html" %}
     """
     user = request.user
 
@@ -74,7 +65,10 @@ def panel_extras(request, template="admin_menu/admin_menu_items.html"):
 #    print "XX", len(nodes)
 #    messages.debug(request, "nodes len: %s" % len(nodes))
 
-    context = {"nodes":nodes}
+    context = {
+        "nodes":nodes,
+        "template_name": build_template_names(request, template),
+    }
     response = render_to_response(
         template, context, context_instance=RequestContext(request)
     )

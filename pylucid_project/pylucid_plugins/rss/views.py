@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
 """
     PyLucid RSS plugin
     ~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2007-2010 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2007-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -26,11 +26,13 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 
-from pylucid_project.apps.pylucid.markup import hightlighter
 from pylucid_project.apps.pylucid.decorators import render_to
+from pylucid_project.apps.pylucid.markup import hightlighter
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 from pylucid_project.utils.escape import escape
 
-from rss.preference_forms import PreferencesForm
+from .preference_forms import PreferencesForm
+
 
 @render_to()#, debug=True)
 def lucidTag(request, url, max_entries=None, debug=False, **kwargs):
@@ -109,8 +111,11 @@ def lucidTag(request, url, max_entries=None, debug=False, **kwargs):
     if max_entries:
         feed_dict["feed"].entries = feed_dict["feed"].entries[:max_entries]
 
+    template_name = preferences["template_name"]
+    template_names = build_template_names(request, template_name)
+
     context = {
-        "template_name": preferences["template_name"],
+        "template_name": template_names,
         "url": url,
         "max_entries": max_entries,
         "feed": feed_dict["feed"],

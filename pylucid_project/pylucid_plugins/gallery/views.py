@@ -23,7 +23,7 @@ if __name__ == "__main__":
 from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.http import Http404, HttpResponseRedirect, HttpResponseBadRequest
+from django.http import Http404, HttpResponseRedirect
 from django.template.context import RequestContext
 from django.utils.translation import ugettext as _
 
@@ -34,9 +34,10 @@ from django_tools.filemanager.filesystem_browser import BaseFilesystemBrowser
 
 from pylucid_project.apps.pylucid.models import LogEntry
 from pylucid_project.apps.pylucid.shortcuts import render_pylucid_response
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
-from gallery.models import GalleryModel
-from gallery.preference_forms import GalleryPrefForm
+from .models import GalleryModel
+from .preference_forms import GalleryPrefForm
 
 
 #------------------------------------------------------------------------------
@@ -181,9 +182,10 @@ class Gallery(BaseFilesystemBrowser):
             "picture_info": self.picture_info,
             "breadcrumbs": self.breadcrumbs,
         }
+        template_names = build_template_names(self.request, self.config.template)
 
         # ajax and non ajax response
-        return render_pylucid_response(self.request, self.config.template, context,
+        return render_pylucid_response(self.request, template_names, context,
             context_instance=RequestContext(self.request)
         )
 
@@ -222,7 +224,6 @@ def gallery(request, rest_url=""):
         )
         raise Http404("Gallery error.")
 
-
     if not request.is_ajax():
         # FIXME: In Ajax request, only the page_content would be replaced, not the
         # breadcrumb links :(
@@ -241,9 +242,6 @@ def gallery(request, rest_url=""):
             request.PYLUCID.context["page_permalink"] += "/%s/" % gallery.rel_url
 
     return gallery.render()
-
-
-
 
 
 if __name__ == "__main__":

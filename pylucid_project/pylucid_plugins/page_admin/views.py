@@ -4,7 +4,7 @@
     PyLucid page admin
     ~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2009-2010 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -14,12 +14,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
 
-from pylucid_project.apps.pylucid.shortcuts import render_pylucid_response
-from pylucid_project.apps.pylucid.markup.converter import apply_markup
 from pylucid_project.apps.pylucid.decorators import check_permissions
+from pylucid_project.apps.pylucid.markup.converter import apply_markup
 from pylucid_project.apps.pylucid.models import PageTree, PageContent
+from pylucid_project.apps.pylucid.shortcuts import render_pylucid_response
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
-from page_admin.forms import EditPageForm
+from .forms import EditPageForm
 
 
 def _get_pageobjects(request):
@@ -69,7 +70,8 @@ def _edit_page(request, form_url):
         "pagecontent": pagecontent,
         "pagemeta": pagemeta,
     }
-    return render_pylucid_response(request, 'page_admin/edit_inline_form.html', context,
+    template_names = build_template_names(request, "page_admin/edit_inline_form.html")
+    return render_pylucid_response(request, template_names, context,
         context_instance=RequestContext(request)
     )
 

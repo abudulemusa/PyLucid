@@ -4,7 +4,7 @@
     PyLucid include plugin
     ~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2011 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2011-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -25,6 +25,7 @@ from pylucid_project.apps.pylucid.decorators import render_to
 from pylucid_project.apps.pylucid.markup import MARKUP_DATA
 from pylucid_project.apps.pylucid.markup.converter import apply_markup
 from pylucid_project.apps.pylucid.markup.hightlighter import make_html
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 from pylucid_project.pylucid_plugins.include.preference_forms import PreferencesForm
 from pylucid_project.utils.escape import escape
 
@@ -94,7 +95,7 @@ def local_file(request, filepath, encoding="utf-8", markup=None, highlight=None,
     basepath = getattr(settings, "PYLUCID_INCLUDE_BASEPATH", None)
     if not basepath:
         return _error(request, "Include error.", "settings.PYLUCID_INCLUDE_BASEPATH not set!")
-    
+
     basepath = os.path.normpath(basepath)
     if not filepath.startswith(basepath):
         return _error(request, "Include error.", "Filepath doesn't start with %r" % basepath)
@@ -167,8 +168,11 @@ def remote(request, url, encoding=None, markup=None, highlight=None, strip_html=
     content = context["raw_content"]
     content = _render(request, content, url, markup, highlight, strip_html)
 
+    remote_template = preferences["remote_template"]
+    template_names = build_template_names(request, remote_template)
+
     context.update({
-        "template_name": preferences["remote_template"],
+        "template_name": template_names,
         "url": url,
         "content": content,
         "from_cache": from_cache,

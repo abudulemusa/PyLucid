@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
 """
     PyLucid breadcrumb plugin
@@ -6,30 +6,23 @@
 
     Generates a horizontal backlink bar.
 
-    Last commit info:
-    ~~~~~~~~~
-    $LastChangedDate: $
-    $Rev: $
-    $Author: JensDiemer $
-
-    :copyleft: 2009 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details
 """
 
-__version__ = "$Rev:$"
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 from pylucid_project.apps.pylucid.models import PageTree
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
-from breadcrumb.preference_forms import BreadcumbPrefForm
+from .preference_forms import BreadcumbPrefForm
 
 
 class ContextMiddleware(object):
     def __init__(self, request):
         self.request = request
-
         self.linklist = []
 
     def add_link(self, name, title="", url=None):
@@ -53,6 +46,7 @@ class ContextMiddleware(object):
             "preferences": pref_data,
             "linklist": linklist,
         }
-        return render_to_response('breadcrumb/breadcrumb.html', context,
+        template_names = build_template_names(self.request, "breadcrumb/breadcrumb.html")
+        return render_to_response(template_names, context,
             context_instance=RequestContext(self.request)
         )

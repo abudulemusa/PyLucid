@@ -4,12 +4,10 @@
     PyLucid language plugin
     ~~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyleft: 2009-2010 by the PyLucid team, see AUTHORS for more details.
+    :copyleft: 2009-2012 by the PyLucid team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.p
 
 """
-
-__version__ = "$Rev:$"
 
 from django.conf import settings
 from django.contrib import messages
@@ -18,11 +16,12 @@ from django.http import HttpResponseRedirect
 
 from django_tools.validators import validate_language_code
 
-from pylucid_project.apps.pylucid.system import i18n
-from pylucid_project.apps.pylucid.models import PageMeta, Language
 from pylucid_project.apps.pylucid.decorators import render_to
+from pylucid_project.apps.pylucid.models import PageMeta, Language
+from pylucid_project.apps.pylucid.system import i18n
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 
-from language.preference_forms import LanguagePrefForm
+from .preference_forms import LanguagePrefForm
 
 
 RESET_KEY = "reset"
@@ -35,7 +34,7 @@ def _can_reset():
     return pref_data["add_reset_link"] or settings.DEBUG or settings.PYLUCID.I18N_DEBUG
 
 
-@render_to("language/language_selector.html")
+@render_to()
 def lucidTag(request):
     """ insert language selector list into page """
     existing_languages = request.PYLUCID.languages[:]
@@ -65,6 +64,7 @@ def lucidTag(request):
         "existing_languages": existing_languages,
         "add_reset_link": _can_reset(),
         "reset_key": RESET_KEY,
+        "template_name": build_template_names(request, "language/language_selector.html"),
     }
     return context
 

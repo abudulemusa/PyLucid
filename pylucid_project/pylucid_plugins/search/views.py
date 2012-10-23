@@ -8,9 +8,9 @@
     :license: GNU GPL v2 or above, see LICENSE for more details
 """
 
+
 import time
 import traceback
-
 
 from django.conf import settings
 from django.contrib import messages
@@ -27,13 +27,13 @@ from django_tools.template.filters import human_duration
 from pylucid_project.apps.pylucid.context_processors import NowUpdateInfo
 from pylucid_project.apps.pylucid.decorators import render_to
 from pylucid_project.apps.pylucid.models import Language, LogEntry
+from pylucid_project.apps.pylucid.system.pylucid_plugin import build_template_names
 from pylucid_project.system.pylucid_plugins import PYLUCID_PLUGINS, \
     PluginNotOnSite
 from pylucid_project.utils.python_tools import cutout
 
-from pylucid_project.pylucid_plugins.search.preference_forms import get_preferences
-from pylucid_project.pylucid_plugins.search.forms import AdvancedSearchForm, \
-    SearchForm
+from .preference_forms import get_preferences
+from .forms import AdvancedSearchForm, SearchForm
 
 
 def _filter_search_terms(request, search_string):
@@ -271,7 +271,7 @@ def _search(request, cleaned_data):
 
 
 @csrf_exempt # FIXME: Use AJAX?
-@render_to("search/search.html")#, debug=True)
+@render_to()#, debug=True)
 def http_get_view(request):
 
     # XXX: Should we support GET search ?
@@ -311,15 +311,20 @@ def http_get_view(request):
         "form": form,
         "form_url": request.path + "?search=",
         "search_results": search_results,
+        "template_name": build_template_names(request, "search/search.html"),
     }
     return context
 
 
-@render_to("search/lucidTag.html")#, debug=True)
+@render_to()#, debug=True)
 def lucidTag(request):
     """
     Display only a small search form. Can be inserted into the globale page template.
     The form is a GET form, so http_get_view() handle it.
     """
-    return {"form": SearchForm()}
+    context = {
+        "form": SearchForm(),
+        "template_name": build_template_names(request, "search/lucidTag.html"),
+    }
+    return context
 

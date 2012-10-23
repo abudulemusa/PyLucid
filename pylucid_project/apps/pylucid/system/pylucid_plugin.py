@@ -10,6 +10,8 @@
 """
 
 
+import os
+
 from django.contrib import messages
 from django.core import urlresolvers
 from django.http import HttpResponse
@@ -121,3 +123,24 @@ def call_plugin(request, url_lang_code, prefix_url, rest_url):
 
     return response
 
+
+def build_template_names(request, template_name, debug=False):
+    """
+    Build a template list for a plugin view. So that it is possible to 
+    overwrite templates only for one design.
+    """
+    try:
+        pagetree = request.PYLUCID.pagetree
+    except AttributeError:
+        template_names = (template_name,)
+    else:
+        design = pagetree.design
+        design_name = design.name
+        template_names = (
+            os.path.join(design_name, template_name),
+            template_name
+        )
+
+    if debug:
+        messages.debug(request, "Template names: %s" % repr(template_names))
+    return template_names
